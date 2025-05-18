@@ -1,0 +1,8 @@
+# Ignore macOS system files
+.DS_Store
+node_modules/
+Objs/
+未命名.txt
+Locale/*.strings
+Locale/*.po
+

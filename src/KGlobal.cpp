@@ -6,28 +6,43 @@
 
 #include "KGlobal.h"
 
-
-void GetDefIniFileName(wxString& tIniFileName)
+void GetDefIniFileName(wxString& tIniFileName,const wxString& tRefPath)
 {
 	wxString tExeFile=wxStandardPaths::Get().GetExecutablePath();
 	// get directory of the executable file
 	wxFileName tExtFile(tExeFile);
 	wxString tDir=tExtFile.GetPath();
-	tIniFileName= tDir +  "/../Resources/" + tExtFile.GetName() + ".ini"; 
+	tIniFileName= tDir + tRefPath + tExtFile.GetName() + ".ini"; 
 };
 
-void GetDefUsrIniFileName(wxString& tIniFileName)
+void GetDefUsrIniFileName(wxString& tIniFileName,const wxString& tRefPath)
 {
 	wxString tExeFile=wxStandardPaths::Get().GetExecutablePath();
 	// get directory of the executable file
 	wxFileName tExtFile(tExeFile);
 	wxString tDir=tExtFile.GetPath();
-	tIniFileName= tDir +  "/../Resources/" + tExtFile.GetName() + "Usr.ini"; 
+	tIniFileName= tDir + tRefPath + tExtFile.GetName() + "Usr.ini"; 
 	return ;
 };
 
 
- 
+bool GetAvailableIniFullName(wxString& tIniFileName,bool tIsUsr) { 
+	if(tIsUsr) GetDefUsrIniFileName(tIniFileName,CAppIniFileRefPathInAppBundle);
+	else GetDefIniFileName(tIniFileName,CAppIniFileRefPathInAppBundle);
+	// Check if the file exists
+	if (wxFileName::FileExists(tIniFileName)) {
+		return true; // File exists
+	}
+
+	if(tIsUsr) GetDefUsrIniFileName(tIniFileName,CAppIniFileRefPathInExeDir);
+	else GetDefIniFileName(tIniFileName,CAppIniFileRefPathInExeDir);
+	// Check if the file exists
+	if (wxFileName::FileExists(tIniFileName)) {
+		return true; // File exists
+	}
+	return false; // File does not exist
+}
+
 bool IsInDarkMode(){ return  wxSystemSettings::GetAppearance().IsDark(); };
 bool IsInDarkMode(wxWindow* tWin){ return tWin->GetBackgroundColour() == wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW); };
 

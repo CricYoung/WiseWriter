@@ -17,8 +17,8 @@ WX_CFLAGS = -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOS
 WX_LDFLAGS = -framework IOKit -framework Carbon -framework Cocoa -framework QuartzCore -framework AudioToolbox \
   -framework System -framework OpenGL -framework WebKit \
   -lwx_osx_cocoau_html-3.2 -lwx_baseu_xml-3.2 -lexpat \
-  -lwx_osx_cocoau_core-3.2 -lwx_baseu-3.2 -lwxtiff-3.2 -lwx_osx_cocoau_webview-3.2.0.4.0 \
-  -lwxjpeg-3.2 -lwxpng-3.2 -lwxregexu-3.2 -lwxscintilla-3.2 -lwx_osx_cocoau_stc-3.2.0 -lz \
+  -lwx_osx_cocoau_core-3.2 -lwx_baseu-3.2 -lwxtiff-3.2 -lwx_osx_cocoau_webview-3.2 \
+  -lwxjpeg-3.2 -lwxpng-3.2 -lwxregexu-3.2 -lwxscintilla-3.2 -lwx_osx_cocoau_stc-3.2 -lz \
   -framework Security -lpthread -liconv
 
 # --- Mode Dependent Flags ---

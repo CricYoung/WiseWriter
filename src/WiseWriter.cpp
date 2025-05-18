@@ -61,8 +61,8 @@ MyFrame::MyFrame() : wxFrame(NULL, wxID_ANY, gTitle, wxDefaultPosition, wxSize(5
 	BuildMenu(); // also effective no need CallAfter
 	BindEvents(); // Bind events to functions
 
-	CreateStatusBar(3);
-	SetStatusWidths(3, new int[3]{ -1, 100, 100 });  // 第一欄自適應，第二、三欄固定寬度
+	CreateStatusBar(4);
+	SetStatusWidths(4, new int[4]{ -1, 100, 100, 100 });  // 第一欄自適應，第二、三欄固定寬度
 	SetStatusText(_("Welcome to 慧寫...😊"),0); 
 	SetViewMod(false);
 };
@@ -83,7 +83,7 @@ void MyFrame::BuildMenu()
 
 	wxMenu* editMenu = new wxMenu;
 
-	editMenu->Append(ID_Menu_ToggleDarkMode,_("Toggle DarkMode\tShift+Ctrl+Alt+Back")); 
+	editMenu->Append(ID_Menu_ToggleDarkMode,_("Toggle Dark Mode")); 
 	editMenu->Append(ID_Menu_ToggleFullScreen, _("Toggle Full Screen")); 
 	editMenu->AppendSeparator();
 	editMenu->Append(ID_Menu_RestoreAppPrefer, _("Restore App Prefer")); 
@@ -119,10 +119,11 @@ void MyFrame::OnIdle(wxIdleEvent &)
 {
 	if(bIsAutoSaveBySecCount){ 
   	if(nCurSecCountDown <= 0){
+			nCurSecCountDown = CMinAutoSaveSecCount; // Reset countdown
+			autoSaveTimer->Stop(); // Stop timer
     	SetStatusText(_("Auto save..."), 1);
-    	SaveHistory();
-    	SetStatusText(_("Auto save done"), 1);
-    	autoSaveTimer->Stop(); // Stop timer
+    	if(SaveHistory()) SetStatusText(_("Auto save done"), 1);
+    	else SetStatusText(_("Not saved !"), 1);
     	autoSaveTimer->Start(CCheckTimerPerMiniSec); // Restart timer
 			return ;
 		};
@@ -130,8 +131,9 @@ void MyFrame::OnIdle(wxIdleEvent &)
 	if(bIsAutoSaveByKeyCount) {
 		if(nCurKeyCountDown <= 0){
 			SetStatusText(_("Auto save..."), 1);
-			SaveHistory();
-			SetStatusText(_("Auto save done"), 1);
+    	if(SaveHistory()) SetStatusText(_("Auto save done"), 1);
+    	else SetStatusText(_("Not saved !"), 1);
+			nCurKeyCountDown = CMinAutoSaveKeyCount; // Reset countdown
 			return ;
 		};
 	};
@@ -143,7 +145,8 @@ void MyFrame::OnAutoSaveTimer(wxTimerEvent &)
 	if(nCurSecCountDown > 0) { 
 		nCurSecCountDown-=CCheckTimerPerSec;
 		if(nCurSecCountDown < 0) nCurSecCountDown = 0;
-		// SetStatusText(wxString::Format("Auto save countdown %d seconds", nCurSecCountDown), 0); 
+		if(bIsShowTimeCountDown) 
+			SetStatusText(wxString::Format("Auto save countdown %d seconds", nCurSecCountDown), 0);
 		// when countdown to 0, will save history when idle
 	}
 }
@@ -713,7 +716,7 @@ void MyFrame::SetHotkeys(){
 
 void MyFrame::SaveAppPrefer(){
 	wxString tIniFileName;
-	::GetDefUsrIniFileName(tIniFileName);
+	::GetAvailableIniFullName(tIniFileName,true);
 	wxFileConfig tConfig("WiseWriter","Cric.Dev",tIniFileName,wxEmptyString,wxCONFIG_USE_LOCAL_FILE);
 	tConfig.SetPath("/Preferences"); 
 	// Save font settings
@@ -754,12 +757,15 @@ void MyFrame::SaveAppPrefer(){
 	tConfig.Write("AutoSaveKeyCount", nAutoSaveKeyCount);
 	tConfig.Write("IsAutoSaveBySecCount", bIsAutoSaveBySecCount);
 	tConfig.Write("AutoSaveSecCount", nAutoSaveSecCount);
+	tConfig.Write("IsShowTimeCountDown", bIsShowTimeCountDown);
+	tConfig.Write("IsShowKeyCountDown", bIsShowKeyCountDown);
+	tConfig.Flush(); // Save the config
 }
 
 
 bool MyFrame::LoadAppPrefer(){
 	wxString tIniFileName;
-	::GetDefUsrIniFileName(tIniFileName);
+	::GetAvailableIniFullName(tIniFileName,true);
 	if(!wxFileExists(tIniFileName)) return false;
 	wxFileConfig tConfig("WiseWriter","Cric.Dev",tIniFileName,wxEmptyString,wxCONFIG_USE_LOCAL_FILE);
 	tConfig.SetPath("/Preferences");
@@ -841,13 +847,15 @@ bool MyFrame::LoadAppPrefer(){
 	bIsAutoSaveBySecCount = tConfig.Read("IsAutoSaveBySecCount", false); // Load auto save
 	nAutoSaveSecCount = tConfig.Read("AutoSaveSecCount", CMinAutoSaveSecCount);
 	if(nAutoSaveSecCount < CMinAutoSaveSecCount) nAutoSaveSecCount = CMinAutoSaveSecCount;
-	if(bIsAutoSaveBySecCount) IniAutoSaveSettings();	
+	bIsShowTimeCountDown = tConfig.Read("IsShowTimeCountDown", false);
+	bIsShowKeyCountDown = tConfig.Read("IsShowKeyCountDown", false);
+	if(bIsAutoSaveBySecCount || bIsAutoSaveByKeyCount) IniAutoSaveSettings();	
 	return true;
 }
 
 void MyFrame::DeleAppPrefer(){
 	wxString tIniFileName;
-	::GetDefUsrIniFileName(tIniFileName);
+	::GetAvailableIniFullName(tIniFileName,true);
 	wxRemoveFile(tIniFileName); // Delete the ini file
 };
 
@@ -855,10 +863,10 @@ bool MyFrame::RestoreAppPrefer()
 {
   DeleAppPrefer();
 	wxString tIniFileName;
-	::GetDefIniFileName(tIniFileName);
+	::GetAvailableIniFullName(tIniFileName,false);
 	if(!wxFileExists(tIniFileName)) return false; 
 	wxString tUsrIniFileName;
-	::GetDefUsrIniFileName(tUsrIniFileName);
+	::GetAvailableIniFullName(tUsrIniFileName,true);
 	wxCopyFile(tIniFileName, tUsrIniFileName, true);
 	return LoadAppPrefer(); //will set to default
 }
@@ -869,6 +877,7 @@ void MyFrame::TakeEffect(wxTextCtrl* tpInput)
 	tpInput->SetFont(oFont);
 	SwitchToDarkMode(bIsDarkMode);
 	IniAutoSaveSettings();
+	SetStatusText("",0);
 }
 
 void MyFrame::SetDlgSettingsFromAppPrefer()
@@ -885,6 +894,8 @@ void MyFrame::SetDlgSettingsFromAppPrefer()
 	dlgSettings->SetAutoSaveKeyCount(nAutoSaveKeyCount);
 	dlgSettings->SetIsAutoSaveBySecCount(bIsAutoSaveBySecCount);
 	dlgSettings->SetAutoSaveSecCount(nAutoSaveSecCount);
+	dlgSettings->SetIsShowTimeCountDown(bIsShowTimeCountDown);
+	dlgSettings->SetIsShowKeyCountDown(bIsShowKeyCountDown);
 }
 
 void MyFrame::SetAppPreferFromDlgSettings()
@@ -904,17 +915,42 @@ void MyFrame::SetAppPreferFromDlgSettings()
 	dlgSettings->GetIsAutoSaveBySecCount(bIsAutoSaveBySecCount);
 	dlgSettings->GetAutoSaveSecCount(nAutoSaveSecCount);
 	if(nAutoSaveSecCount < CMinAutoSaveSecCount) nAutoSaveSecCount = CMinAutoSaveSecCount;
+	dlgSettings->GetIsShowTimeCountDown(bIsShowTimeCountDown);
+	dlgSettings->GetIsShowKeyCountDown(bIsShowKeyCountDown);
 }
+
 void MyFrame::ShowHelp(){
-	wxLogMessage("Ctrl+Enter:Summon WiseWriter.\nAlt+Enter:Past back original app.\n[Space]+[ :Previon pasted text.\n [Space]+] :Next pasted text.\n[Space]+S : Delete to end.\n [Space]+B : Delete to top.\nTabs/Shift-Tabs : Next(Previous) phrase.\nEscape : switch View/Edit mode.\n");
+  if(!pHelp){
+  	pHelp=new KHelp(this,_("WiseWriter Help"));
+  	if(!pHelp) return;
+  	pHelp->SetSize(800,600);
+  	wxSize tSize=pHelp->GetSize();
+  	int X = (wxGetDisplaySize().GetWidth() - tSize.GetWidth()) / 2;
+  	int Y = (wxGetDisplaySize().GetHeight() - tSize.GetHeight()) / 2;
+    pHelp->SetPosition(wxPoint(X,Y));
+		wxString tIniFileName;
+		::GetAvailableIniFullName(tIniFileName,true);
+		wxFileName tFile(tIniFileName);
+		//get directory
+		wxString tDir=tFile.GetPath();
+		int tLangCode=::GetPreferLang(tIniFileName);
+		wxString tHelpFileName;
+		if(tLangCode == wxLANGUAGE_CHINESE_TRADITIONAL || tLangCode == wxLANGUAGE_CHINESE_SIMPLIFIED) tHelpFileName=tDir+"/WiseWriterHelp.txt";
+		else tHelpFileName=tDir+"/WiseWriterHelpEnglish.txt";
+		if(wxFileExists(tHelpFileName)) {
+			pHelp->LoadFile(tHelpFileName);
+		};
+	};
+  pHelp->ShowModal(); 
 }
+
 void MyFrame::ShowStatusHistoryIndex()
 {
 	if (historyIndex >= 0 && historyIndex < (int)commandHistory.size()) {
-		SetStatusText(wxString::Format("Index: %d/%d", historyIndex + 1, (int)commandHistory.size()), 2);
+		SetStatusText(wxString::Format("Index: %d/%d", historyIndex + 1, (int)commandHistory.size()), 3);
 	}
 	else {
-		SetStatusText(wxString::Format("Index: New/%d", (int)commandHistory.size()), 2);
+		SetStatusText(wxString::Format("Index: New/%d", (int)commandHistory.size()), 3);
 	}
 }
 
@@ -973,7 +1009,7 @@ bool MyFrame::SetViewMod(bool tInView)
 {
 	bInViewMode = tInView;
 	// SetTitle(bInViewMode ? "輸入輔助器(F1:Help) View Mode" : "輸入輔助器(F1:Help) Edit Mode");
-	SetStatusText(bInViewMode ? "〖View Mode〗" : "【Edit Mode】", 1);
+	SetStatusText(bInViewMode ? "〖View Mode〗" : "【Edit Mode】", 2);
 	ChangeCaretForm();
 	return bInViewMode;
 }
@@ -1319,7 +1355,7 @@ bool MyFrame::DoVimEditKey(wxKeyEvent &event)
 				return true;
 			}
 			nLastKeyCode = keyCode; // Save the last key code
-			SetStatusText(wxString::Format(" %c ", keyCode), 0); // Show status
+			SetStatusText(wxString::Format(" %c ", keyCode), 1); // Show status
 			return false; // Handled
 		case WXK_ESCAPE: ResetCombineKey(); LeaveEditMode(); return true; // Handled 
 		case WXK_RETURN: 
@@ -1341,7 +1377,7 @@ void MyFrame::ShowInputStatus(){
 void MyFrame::ResetCombineKey()
 {
 	nLastKeyCode = -1; // Reset last key code
-	SetStatusText(wxString::Format("    "), 0); 
+	SetStatusText(wxString::Format("    "), 1); 
 	return ; 
 };
 
@@ -1427,15 +1463,23 @@ bool MyFrame::DoStKey(wxKeyEvent &, StKey& tKey)
 	return false;
 };
 
-bool MyFrame::DoFindChar(int keyCode,bool tBackward)
+bool MyFrame::DoFindChar(int keyCode,bool tBackward,int tPlusMove,bool tRemember)
 {
 	long currentPos = input->GetInsertionPoint();
 	long lastPos = input->GetLastPosition();
+	if(tRemember) {
+		nLastFindCharCode = keyCode; // Save the last key code
+		bLastFindBackward = tBackward; // Save the last direction
+		nLastFindPlusMove = tPlusMove; // Save the last plus move
+	}
 	if(tBackward) {
 		if (currentPos == 0) return false; // No more lines
-		for(long newPos = currentPos - 1; newPos >= 0; newPos--) {
+		for(long newPos = currentPos - 2; newPos >= 0; newPos--) {
 			if (input->GetValue().GetChar(newPos) == keyCode) {
 				input->SetInsertionPoint(newPos);
+				if(tPlusMove) {
+					MoveCaretAhead(tPlusMove);  
+				}
 				return true;
 			}
 		}
@@ -1445,6 +1489,9 @@ bool MyFrame::DoFindChar(int keyCode,bool tBackward)
 	for(long newPos = currentPos + 1; newPos < lastPos; newPos++) {
 		if (input->GetValue().GetChar(newPos) == keyCode) {
 			input->SetInsertionPoint(newPos);
+			if(tPlusMove) {
+				MoveCaretAhead(tPlusMove);  
+			}
 			return true;
 		}
 	}
@@ -1534,50 +1581,59 @@ bool MyFrame::DoVimCombineKey(wxKeyEvent &event)
 	if(!tShift) keyCode = wxTolower(keyCode); 
 	switch(nLastKeyCode){
 		case 'F':
-		  SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 0); 
-			if(DoFindChar(keyCode,true)) MoveCaretAhead(1); 
+		  SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,true,1,true); 
 			nLastKeyCode=-1;
 			return true; 
 		case 'f':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 0); 
-			if(DoFindChar(keyCode,false)) MoveCaretAhead(1); 
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,false,1,true);  
 			nLastKeyCode=-1;
 			return true;	
 		case 'T':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 0); 
-			DoFindChar(keyCode,true);
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,true,0,true);
 			nLastKeyCode=-1;
 			return true;  
 		case 't':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 0); 
-			DoFindChar(keyCode,false);
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,false,0,true); 
 			nLastKeyCode=-1;
 			return true; 
 		case 'D':
 		case 'd':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 0);
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1);
 			if(!DoDCharKey(keyCode)) break;
 			nLastKeyCode=-1;
 			return true;
-		case '/': 
-		case 'Y':
-		  return true;
+		// case '/': 
+		// case 'Y':
+		  // return true;
 		default:
 			break;
 	}
-
+	// fprintf(stderr,"DoVimCombineKey nLastKeyCode=%i(%c), keyCode=%i(%c)\n",nLastKeyCode,nLastKeyCode,keyCode,keyCode);
 	switch(keyCode) {
+		case ';':
+		case 'n':
+		  // fprintf(stderr,"DoFindChar nLastFindCharCode=%i(%c), bLastFindBackward=%i, nLastFindPlusMove=%i\n",nLastFindCharCode,nLastFindCharCode,bLastFindBackward,nLastFindPlusMove);
+		  DoFindChar(nLastFindCharCode,bLastFindBackward,nLastFindPlusMove,false);
+			return true;
+		case 'N':
+		  // fprintf(stderr,"DoFindChar nLastFindCharCode=%i(%c), bLastFindBackward=%i, nLastFindPlusMove=%i\n",nLastFindCharCode,nLastFindCharCode,bLastFindBackward,nLastFindPlusMove);
+		  DoFindChar(nLastFindCharCode,!bLastFindBackward,nLastFindPlusMove,false);
+			return true;
 		case 'T': 
 		case 't':
 		case 'F':
 		case 'f':
 		case 'D': 
 		case 'd':
-		case 'Y': 
-		case 'y':
-		case '/':
+		// case 'Y': 
+		// case 'y':
+		// case '/':
 			nLastKeyCode = keyCode; // Save the last key code
-			SetStatusText(wxString::Format(" %c ", keyCode), 0); // Show status 
+			SetStatusText(wxString::Format(" %c ", keyCode), 1); // Show status 
 			return true; // Handled
 		default:
 		  break;
@@ -1591,10 +1647,10 @@ void MyFrame::OnKeyDown(wxKeyEvent &event)
 	if(bIsAutoSaveByKeyCount) {
 		if(nCurKeyCountDown > 0){
 			 nCurKeyCountDown--;
-			//  SetStatusText(wxString::Format("Auto Save after %i Keydown", nCurKeyCountDown), 0); 
+			 if(bIsShowKeyCountDown) SetStatusText(wxString::Format("Auto Save after %i Keydown", nCurKeyCountDown), 0); 
 		};
 		if(nCurKeyCountDown == 0) {
-			// SetStatusText(wxString::Format("Auto Save when idle after %i Keycounts", nAutoSaveKeyCount), 0); 
+			if(bIsShowKeyCountDown) SetStatusText(wxString::Format("Auto Save when idle after %i Keycounts", nAutoSaveKeyCount), 0);
 		  // will save file when idle
 		};
 	};

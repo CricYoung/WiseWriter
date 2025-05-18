@@ -1,0 +1,60 @@
+全域熱鍵（DefHotkeySets）
+* Cmd+Enter : Summon WiseWriter from other app's input field
+* Cmd+Enter : Paste content to source app
+* Cmd+PageUp : Previous Paste
+* Cmd+PageDown : Next Paste
+* Esc : Hide and don't paste
+* Shift+Ctrl+Alt+Back : Toggle Dark Mode
+* Ctrl+F11 : Toggle Full Screen
+* Ctrl+R : Restore App Prefer
+* Ctrl+L : Load History
+* Ctrl+S : Save History
+* Ctrl+D : Clear History
+* F1 : Show Help
+
+主要輸入區（DoStaticKey）
+* Tab : Indent (with Shift = unindent)
+* Home : Move caret to line start
+* End : Move caret to line end
+* PageUp : Page up；若在頂端則切換到上一筆歷史
+* PageDown : Page down；若在底端則切換到下一筆歷史
+* Cmd+= : Increase font size
+* Cmd+- : Decrease font size
+
+Vim 檢視模式（DoVimViewKey）
+* I : Enter edit mode
+* A : Move caret right 1 & enter edit mode
+* H : Move caret left
+* L : Move caret right
+* K : Move caret up
+* J : Move caret down
+* 0 / U : Move caret to line start
+* $ / M : Move caret to line end
+* O : Page up
+* . : Page down
+* X : Delete char under cursor
+* Esc/Enter : Enter edit mode
+
+Vim 編輯模式（DoVimEditKey）
+* J J（連按兩次）: Move caret left & delete char under cursor & leave edit mode
+* Esc : Leave edit mode
+* Enter : (no special handling)
+
+Cmd+Alt+Shift 組合（DoCmdAltShiftKey）
+* 0 : Move caret to line start
+* 9 : Move caret to line end
+* S : Delete to end of line
+* B : Delete to beginning of line
+* [ : Previous command in history
+* ] : Next command in history
+
+Vim 組合鍵（DoVimCombineKey）
+* f + [char] : Find next [char] (forward)
+* F + [char] : Find previous [char] (backward)
+* t + [char] : Move before next [char] (forward)
+* T + [char] : Move before previous [char] (backward)
+* d + d : Delete to end of line
+* d + w : Delete word
+* n : Repeat last find
+* N : Repeat last find (reverse)
+* ; : Repeat last find

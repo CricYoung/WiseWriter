@@ -73,26 +73,37 @@ bool CheckOsLangAvailable(const wxString& tLang){
 };
 
 int CheckLangLocaleFilePathByLangCode(const int tLangCode){
-	wxFileName tAppPath = wxStandardPaths::Get().GetExecutablePath();
-	wxString tAppDir = tAppPath.GetPath();
-	wxString tLocalePath = tAppDir + "/../Resources/locale";
 	wxString tShortDirName;
-	if(!ConvertCodeToLangDirShortName(tLangCode,tShortDirName)) return 0; 
+	if(!ConvertCodeToLangDirShortName(tLangCode,tShortDirName)) return 0;  
+	wxString tPath;
 	int tAns=0x1; // OS ok
-	wxString tLangFileName=tLocalePath + "/" + tShortDirName + "/wxstd.mo";
-	if (wxFileName::FileExists(tLangFileName)) tAns|=0x2; // wxLocale ok
-	tLangFileName=tLocalePath + "/" + tShortDirName + "/" + tAppPath.GetName() + ".mo";
- 	if (wxFileName::FileExists(tLangFileName)) tAns|=0x4; // AppLocale ok
+	if(GetLangLocaleFilePathByLangCode(tLangCode,tPath,false,CAppLocaleRefPathInAppBundle)) tAns|=0x2; // wxLocale ok
+	else if(GetLangLocaleFilePathByLangCode(tLangCode,tPath,false,CAppLocaleRefPathInExeDir)) tAns|=0x2; // wxLocale ok
+
+	if(GetLangLocaleFilePathByLangCode(tLangCode,tPath,true,CAppLocaleRefPathInAppBundle)) tAns|=0x4; // AppLocale ok
+	else if(GetLangLocaleFilePathByLangCode(tLangCode,tPath,true,CAppLocaleRefPathInExeDir)) tAns|=0x4; // AppLocale ok
 	return tAns;
+	// wxFileName tAppPath = wxStandardPaths::Get().GetExecutablePath();
+	// wxString tAppDir = tAppPath.GetPath();
+	// wxString tLocalePath = tAppDir + "/../Resources/locale";
+	// wxString tShortDirName;
+	// if(!ConvertCodeToLangDirShortName(tLangCode,tShortDirName)) return 0; 
+	// int tAns=0x1; // OS ok
+	// wxString tLangFileName=tLocalePath + "/" + tShortDirName + "/wxstd.mo";
+	// if (wxFileName::FileExists(tLangFileName)) tAns|=0x2; // wxLocale ok
+	// tLangFileName=tLocalePath + "/" + tShortDirName + "/" + tAppPath.GetName() + ".mo";
+ 	// if (wxFileName::FileExists(tLangFileName)) tAns|=0x4; // AppLocale ok
+	// return tAns;
 };
 
 // if tIsAppLocale is true, tPath=fullpath of {AppName}.mo
 // if tIsAppLocale is false, tPath=fullpath of wxstd.mo
 // return true if file exists, false if not
-bool GetLangLocaleFilePathByLangCode(const int tLangCode, wxString& tPath,bool tIsAppLocale){
+// tRefPath may be CAppLocalePathInAppBundle or CAppLocalePathInExeDir
+bool GetLangLocaleFilePathByLangCode(const int tLangCode, wxString& tPath,bool tIsAppLocale,const wxString& tRefPath){
 	wxFileName tAppPath = wxStandardPaths::Get().GetExecutablePath();
 	wxString tAppDir = tAppPath.GetPath();
-	wxString tLocalePath = tAppDir + "/../Resources/locale";
+	wxString tLocalePath = tAppDir + tRefPath;
 	wxString tShortDirName;
 	if(!ConvertCodeToLangDirShortName(tLangCode,tShortDirName)) return false; 
 	if(tIsAppLocale) {
@@ -145,6 +156,8 @@ int SetAppLangByLangCode(const int tLangCode,bool tOnlyCheck){
 	wxString tAppDir = tAppPath.GetPath();
 	wxString tLocalePath = tAppDir + "/../Resources/locale";
 	tpLocale->AddCatalogLookupPathPrefix(tLocalePath); 
+	tLocalePath = tAppDir + "/Resources/locale";
+	tpLocale->AddCatalogLookupPathPrefix(tLocalePath); 
 	//--- Check WxLocale ---
 	// for like: Resources/locale/zh_TW/wxstd.mo or Resources/locale/ja/wxstd.mo ... files in the locale folder
 	wxString tFileName=CWXLangName;
@@ -160,7 +173,7 @@ bool CheckWxChoseLangAvailable(wxChoice* tChoice)
 {
 	//keep original language
 	wxString tIniFile;
-	::GetDefUsrIniFileName(tIniFile);
+	::GetAvailableIniFullName(tIniFile,true);
 	int tLangIndex = GetPreferLang(tIniFile);
 
 	for (size_t i = 0; i < tChoice->GetCount(); ++i) {
@@ -194,16 +207,3 @@ int GetPreferLang(wxString& tUsrIniFileName)
 	return tLangIndex;
 }  
  
-std::string GetWxPathByWxConfig() {
-    FILE* pipe = popen("wx-config --prefix", "r");
-    if (!pipe) return "";
-    char buffer[256];
-    std::string result;
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        result += buffer;
-    }
-    pclose(pipe);
-    // 移除可能的換行符
-    result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
-    return result;
-}

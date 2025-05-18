@@ -58,6 +58,12 @@ DlgSettingsBase::DlgSettingsBase( wxWindow* parent, wxWindowID id, const wxStrin
 
 	bSizer13->Add( edAutoSaveSecCount, 0, wxALL, 5 );
 
+	chkShowTimeCountDown = new wxCheckBox( pnlGeneral, wxID_ANY, _("Show Time Countdown"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer13->Add( chkShowTimeCountDown, 0, wxALL, 5 );
+
+	chkShowKeyCountDown = new wxCheckBox( pnlGeneral, wxID_ANY, _("Show Keystroke Countdown"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer13->Add( chkShowKeyCountDown, 0, wxALL, 5 );
+
 
 	bSizer8->Add( bSizer13, 1, wxEXPAND, 5 );
 

@@ -4,6 +4,7 @@
 #include <wx/textctrl.h>
 #include "DlgSettings.h"
 #include "KHotKey.h"
+#include "KHelp.hpp"
 
 #define CIniFileName "WiseWriter.ini"
 #define CUsrIniFileName "UsrWiseWriter.ini"
@@ -43,6 +44,7 @@ private:
 	StKey oClearHistory;
 	StKey oShowHelp;
 	bool bSummonKeyRegistered = false; // Summon key registered
+	// auto save
 	bool bIsAutoSaveByKeyCount=true;
 	int nAutoSaveKeyCount=100;
 	int nCurKeyCountDown=CMinAutoSaveKeyCount;
@@ -51,6 +53,14 @@ private:
 	int nCurSecCountDown=CMinAutoSaveSecCount;
 	wxTimer *autoSaveTimer = nullptr; // Timer for auto save
 	wxIdleEvent *idleEvent = nullptr; // Idle event for auto save
+	bool bIsShowTimeCountDown = false; // Show time countdown
+	bool bIsShowKeyCountDown = false; // Show key countdown
+	// find char : t T f F vim key
+	int nLastFindCharCode = -1; // Last find char code
+	bool bLastFindBackward = false; // Last find backward
+	int nLastFindPlusMove = 0; // Last find plus move
+	// KHelp
+	KHelp* pHelp=nullptr; // Help object
 
 public:
 	wxTextCtrl *input;
@@ -127,7 +137,7 @@ public:
 	bool MoveCaretUp(int tLineCount); // negative for up, positive for down
 	void MoveCaretPgUp(){ MoveCaretUp(-(input->GetNumberOfLines()/2)); };
 	void MoveCaretPgDown(){ MoveCaretUp(input->GetNumberOfLines()/2); };
-	bool DoFindChar(int tCharCode,bool tBackward=false);
+	bool DoFindChar(int tCharCode,bool tBackward=false,int tPlusMove=0,bool tRemember=true);
 	int DoDeleLine(int tLineCount=1);
 	int DoDCharKey(int tKeyCode);
 	bool GetCurPhrasePos(long& tStartPos, long& tEndPos);  // phrase may be SpcLike or Alphabet phrase

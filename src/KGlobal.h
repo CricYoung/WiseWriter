@@ -4,6 +4,8 @@
 #include <wx/choice.h>
 #include <wx/dataview.h>
 // === Constants ===
+const std::string CAppIniFileRefPathInAppBundle="/../Resources/"; // App locale path ( in a App bundle)
+const std::string CAppIniFileRefPathInExeDir="/Resources/"; // Exe locale path (refer to executable file)
 // === Define ===
 // for setting ListCtrl fields
 struct StField { 
@@ -19,8 +21,10 @@ struct StHotkeySet {
 
 
 // === Global Functions ===
-void GetDefIniFileName(wxString& tIniFileName); // get ini file name
-void GetDefUsrIniFileName(wxString& tIniFileName); // get user ini file name
+// tRefPath may be CAppLocalePathInAppBundle or CAppLocalePathInExeDir
+void GetDefIniFileName(wxString& tIniFileName,const wxString& tRefPath); // get ini file name
+void GetDefUsrIniFileName(wxString& tIniFileName,const wxString& tRefPath); // get user ini file name
+bool GetAvailableIniFullName(wxString& tIniFileName,bool tIsUsr); // get available ini file name
 void RestartApp(const char* tCmdLine);
 bool IsInDarkMode(); // check if system is in dark mode
 bool IsInDarkMode(wxWindow* tWin); // check if window is in dark mode

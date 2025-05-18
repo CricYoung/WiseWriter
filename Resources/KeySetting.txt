@@ -1,0 +1,241 @@
+std::string gTitle="【慧寫】:輸入輔助器"; 
+std::string gTitleEn="WiseWriter: Input Assistant";
+// --- listHotKeys contents ---
+StHotkeySet DefHotkeySets[] = {
+	{ "Summon", "Cmd+Enter", _("Summon WiseWriter from other app's input field") },
+	{ "PasteBack", "Cmd+Enter", _("Paste content to source app") },
+	{ "PrevPaste", "Cmd+PageUp", _("Previous Paste") }, 
+	{ "NextPaste", "Cmd+PageDown", _("Next Paste") }, 
+	{ "Hide", "Esc", _("Hide and don't paste") },
+	{ "ToggleDarkMode", "Shift+Ctrl+Alt+Back", _("Toggle Dark Mode") },
+	{ "ToggleFullScreen", "Ctrl+F11", _("Toggle Full Screen") },
+	{ "RestoreAppPrefer", "Ctrl+R", _("Restore App Prefer") },
+	{ "LoadHistory", "Ctrl+L", _("Load History") },
+	{ "SaveHistory", "Ctrl+S", _("Save History") },
+	{ "ClearHistory", "Ctrl+D", _("Clear History") },
+	{ "ShowHelp", "F1", _("Show Help") },
+}; 
+// return true if handled
+// return false if not handled
+bool MyFrame::DoStaticKey(wxKeyEvent &event)
+{
+	int keyCode = event.GetKeyCode();
+	switch (keyCode) {
+		case WXK_TAB: // Tab key
+			DoTabKey(event.ShiftDown()); break;
+		case WXK_HOME: // Move to beginning of line
+			MoveCaretToLineTop(); break;
+		case WXK_END: // Move to end of line
+			MoveCaretToLineBottom(); break;
+		case WXK_PAGEUP: // Move to previous page
+		  //if at top of the page, move to previous history
+			if(input->GetInsertionPoint() == 0) {
+				DoCmdHistoryKey(true); ShowStatusHistoryIndex(); return true; // Handled
+			};
+		  MoveCaretPgUp(); return true;
+			// return false;
+		case WXK_PAGEDOWN: // Move to next page
+			//if at end of the page, move to next history
+			if(input->GetInsertionPoint() == input->GetLastPosition()) {
+				DoCmdHistoryKey(false); ShowStatusHistoryIndex(); return true; // Handled
+			};
+			MoveCaretPgDown(); return true;
+			// return false;;
+		case '=':
+		case WXK_NUMPAD_ADD:
+		  if(event.CmdDown()) { DoLargeFont(); return true; } // Handled
+			return false; // Not handled
+		case '-':
+		case WXK_NUMPAD_SUBTRACT:
+		  if(event.CmdDown()) { DoSmallFont(); return true; } // Handled
+			return false; // Not handled
+		default:
+			return false;					
+	}
+	return true; // Handled
+};
+
+bool MyFrame::DoVimViewKey(wxKeyEvent &event)
+{
+	int keyCode = event.GetKeyCode();
+	// bool altDown = event.AltDown();					// Check for Alt/Option key
+	switch (keyCode) {
+		case 'I':
+			EnterEditMode(); break; // Handled
+		case 'A':
+			MoveCaretAhead(1); EnterEditMode(); break; // Handled
+		case 'H':
+			MoveCaretAhead(-1); break;
+		case 'L':
+			MoveCaretAhead(+1); break;
+		case 'K':
+			MoveCaretUp(-1); break;
+	  case 'J': 
+			MoveCaretUp(+1); break;
+		case '0':
+		case 'U':
+		  MoveCaretToLineTop(); break;
+		case '$':
+		case 'M':
+		  MoveCaretToLineBottom(); break;
+		case 'O':
+			MoveCaretPgUp(); break;
+		case '.':
+			MoveCaretPgDown(); break;
+		case 'X': // Delete character under cursor
+			DeleCaretChar(1); break;
+		case WXK_ESCAPE:	 // Go back to edit mode from view mode? Or just stay? Let's stay for now.
+			EnterEditMode(); break;
+		case WXK_RETURN: 
+		  EnterEditMode(); break; // Handled
+		default:
+			return false;					
+	};
+	return true; //handled
+};
+
+bool MyFrame::DoVimEditKey(wxKeyEvent &event)
+{
+	int keyCode = event.GetKeyCode();
+	switch (keyCode) {
+		case 'J': 
+			if(nLastKeyCode == 'J') { 
+				nLastKeyCode=-1; 
+				MoveCaretAhead(-1); 
+				DeleCaretChar(1); 
+				LeaveEditMode(); 
+				ResetCombineKey();
+				return true;
+			}
+			nLastKeyCode = keyCode; // Save the last key code
+			SetStatusText(wxString::Format(" %c ", keyCode), 1); // Show status
+			return false; // Handled
+		case WXK_ESCAPE: ResetCombineKey(); LeaveEditMode(); return true; // Handled 
+		case WXK_RETURN: 
+			return false;
+		default:
+			return false;
+  };
+	return true; // handled
+};
+
+void MyFrame::ShowInputStatus(){
+	if(input->IsModified()) {
+		SetTitle(gTitle+"[Modified]");
+	} else {
+		SetTitle(gTitle);
+	};
+}
+
+void MyFrame::ResetCombineKey()
+{
+	nLastKeyCode = -1; // Reset last key code
+	SetStatusText(wxString::Format("    "), 1); 
+	return ; 
+};
+
+bool MyFrame::DoCmdAltShiftKey(wxKeyEvent &event){
+	int keyCode = event.GetKeyCode();
+	switch(keyCode) {
+		case '0': // Move to beginning of line
+			MoveCaretToLineTop();
+			break;
+		case '9': // Move to end of line
+			MoveCaretToLineBottom();
+			break;
+		case 'S': // Delete to end of line
+			if(bInViewMode) return false;
+			DeleCaretChar(input->GetLastPosition() - input->GetInsertionPoint());
+			break ;
+		case 'B': // Delete to beginning of line
+			if(bInViewMode) return false;
+			DeleCaretChar(-input->GetInsertionPoint());
+			break;
+		case '[': // Previous command in history
+			DoCmdHistoryKey(true);
+			ShowStatusHistoryIndex();
+			break;
+		case ']': // Next “this is a pen”command in history
+			DoCmdHistoryKey(false);
+			ShowStatusHistoryIndex();
+			break;
+		default:
+		  return false; // Not handled
+	}
+	return true; // Handled
+};
+
+
+int MyFrame::DoDCharKey(int tKeyCode){
+	switch(tKeyCode) {
+		case 'D': // Delete to end of line
+		case 'd':
+			return DoDeleLine(1);
+		case 'W':
+		case 'w':
+			return DoDelePhrease(1);
+		default:
+		  return false; // Not handled
+	}
+}
+
+// Some VIM like key handling
+// jj t? T? f? F? N n ;
+bool MyFrame::DoVimCombineKey(wxKeyEvent &event)
+{
+	int keyCode = event.GetKeyCode();
+	bool tShift = event.ShiftDown();
+	if(!tShift) keyCode = wxTolower(keyCode); 
+	switch(nLastKeyCode){
+		case 'F':
+		  SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,true,1,true); 
+			nLastKeyCode=-1;
+			return true; 
+		case 'f':
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,false,1,true);  
+			nLastKeyCode=-1;
+			return true;	
+		case 'T':
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,true,0,true);
+			nLastKeyCode=-1;
+			return true;  
+		case 't':
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+			DoFindChar(keyCode,false,0,true); 
+			nLastKeyCode=-1;
+			return true; 
+		case 'D':
+		case 'd':
+			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1);
+			if(!DoDCharKey(keyCode)) break;
+			nLastKeyCode=-1;
+			return true;
+		default:
+			break;
+	}
+	switch(keyCode) {
+		case ';':
+		case 'n':
+		  DoFindChar(nLastFindCharCode,bLastFindBackward,nLastFindPlusMove,false);
+			return true;
+		case 'N':
+		  DoFindChar(nLastFindCharCode,!bLastFindBackward,nLastFindPlusMove,false);
+			return true;
+		case 'T': 
+		case 't':
+		case 'F':
+		case 'f':
+		case 'D': 
+		case 'd':
+			nLastKeyCode = keyCode; // Save the last key code
+			SetStatusText(wxString::Format(" %c ", keyCode), 1); // Show status 
+			return true; // Handled
+		default:
+		  break;
+	}
+	nLastKeyCode = -1; 
+	return false;
+};

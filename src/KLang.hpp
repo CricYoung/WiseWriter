@@ -6,6 +6,8 @@
 #include <wx/choice.h>
 // --- Lang Constants ---
 const std::string CWXLangName="wxstd"; // Catalog name for wxLocale
+const std::string CAppLocaleRefPathInAppBundle="/../Resources/locale"; // App locale path ( in a App bundle)
+const std::string CAppLocaleRefPathInExeDir="/Resources/locale"; // Exe locale path (refer to executable file)
 // --- Lang Global Variables ---
 extern const std::map<std::string, int> gLangMap;
 extern const std::map<std::string, int> gLangFileMap;
@@ -19,7 +21,8 @@ bool CheckOsLangAvailable(const wxString& tLang);
 // if tIsAppLocale is true, tPath=fullpath of {AppName}.mo
 // if tIsAppLocale is false, tPath=fullpath of wxstd.mo
 // return true if file exists, false if not
-bool GetLangLocaleFilePathByLangCode(const int tLangCode, wxString& tPath,bool tIsAppLocale); 
+// tRefPath may be CAppLocalePathInAppBundle or CAppLocalePathInExeDir
+bool GetLangLocaleFilePathByLangCode(const int tLangCode, wxString& tPath,bool tIsAppLocale,const wxString& tRefPath); // get language locale file path
 // check if language is available for current App
 // An ORed int is returned, 
 // 0: false 
@@ -36,4 +39,3 @@ int CheckLangLocaleFilePathByLangCode(const int tLangCode); // check if language
 int SetAppLangByLangCode(const int tLangCode,bool tOnlyCheck); // Set App Language or check if language is available for current App
 bool CheckWxChoseLangAvailable(wxChoice* tChoice); // delete unavailable language in wxChoice 
 int GetPreferLang(wxString& tIniFileName); // get prefer language from ini file
-std::string GetWxPathByWxConfig();  

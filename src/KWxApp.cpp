@@ -15,7 +15,7 @@ bool MyApp::IniLocalize()
 	  tLang = wxLANGUAGE_ENGLISH; // Default to English if unknown
 		
 	wxString tIniFileName;
-	GetDefUsrIniFileName(tIniFileName); // Get default ini file name
+	GetAvailableIniFullName(tIniFileName,true); // Get default ini file name
 	int tPreferLang = GetPreferLang(tIniFileName); // Get prefer language from ini file
 	if(tPreferLang != -1) 
 	  tLang = tPreferLang; // Use prefer language if available

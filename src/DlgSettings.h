@@ -45,6 +45,8 @@ public:
 	void GetAutoSaveKeyCount(int& tKeyCount) const { int tVal; edAutoSaveKeyCount->GetValue().ToInt(&tVal); tKeyCount = tVal; };
 	void GetIsAutoSaveBySecCount(bool& tAutoSaveSec) const { tAutoSaveSec = chkAutoSaveAfterSecCount->GetValue(); };
 	void GetAutoSaveSecCount(int& tSeconds) const { int tVal; edAutoSaveSecCount->GetValue().ToInt(&tVal); tSeconds = tVal; };
+	void GetIsShowTimeCountDown(bool& tShow) const { tShow = chkShowTimeCountDown->GetValue(); };
+	void GetIsShowKeyCountDown(bool& tShow) const { tShow = chkShowKeyCountDown->GetValue(); };
 	void SetPreferFont(const wxFont& tFont) { m_font = tFont; };
 	void SetPreferBackgroundColor(const wxColor& tColor) { m_LightBackgroundColor = tColor; };
 	void SetPreferTextColor(const wxColor& tColor) { m_LightTextColor = tColor; };
@@ -55,6 +57,8 @@ public:
 	void SetAutoSaveKeyCount(int tKeyCount) { edAutoSaveKeyCount->SetValue(wxString::Format("%i", tKeyCount)); };
 	void SetIsAutoSaveBySecCount(bool tAutoSaveSec) { chkAutoSaveAfterSecCount->SetValue(tAutoSaveSec); };
 	void SetAutoSaveSecCount(int tSeconds) { edAutoSaveSecCount->SetValue(wxString::Format("%i", tSeconds)); };
+	void SetIsShowTimeCountDown(bool tShow) { chkShowTimeCountDown->SetValue(tShow); };
+	void SetIsShowKeyCountDown(bool tShow) { chkShowKeyCountDown->SetValue(tShow); };
 	//hotkey
 	void SetHotkeySets(const StHotkeySet* tHotkeySets, size_t tRowCount);
   void OnItemActivated(wxDataViewEvent& event);

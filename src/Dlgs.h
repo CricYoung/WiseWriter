@@ -49,6 +49,8 @@ class DlgSettingsBase : public wxDialog
 		wxTextCtrl* edAutoSaveKeyCount;
 		wxCheckBox* chkAutoSaveAfterSecCount;
 		wxTextCtrl* edAutoSaveSecCount;
+		wxCheckBox* chkShowTimeCountDown;
+		wxCheckBox* chkShowKeyCountDown;
 		wxPanel* pnlAppearence;
 		wxButton* m_button41;
 		wxButton* m_button18;

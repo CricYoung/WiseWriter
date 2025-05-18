@@ -1,0 +1,120 @@
+msgid ""
+msgstr "
+"Project-Id-Version: Cvt2Po Generated\n"
+"POT-Creation-Date: 2025-05-18 06:42:35\n"
+"PO-Revision-Date: 2025-05-18 06:42:35\n"
+"Last-Translator: Cvt2Po Tool <>\n"
+"Language-Team: Cvt2Po Tool <>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "&About"
+msgstr "정보(&A)"
+
+msgid "&Edit"
+msgstr "편집(&E)"
+
+msgid "&Exit"
+msgstr "종료(&X)"
+
+msgid "&File"
+msgstr "파일(&F)"
+
+msgid "&Help"
+msgstr "도움(&H)"
+
+msgid "&Save History"
+msgstr "기록 저장(&S)"
+
+msgid "About WiseWriter"
+msgstr "WiseWriter 정보"
+
+msgid "About"
+msgstr "정보"
+
+msgid "Cancel"
+msgstr "취소"
+
+msgid "Chose Font"
+msgstr "글꼴 선택"
+
+msgid "Chose Language ( need restart to take effect )"
+msgstr "언어 선택 (재시작 필요)"
+
+msgid "Chose Language"
+msgstr "언어 선택"
+
+msgid "Clear History"
+msgstr "기록 지우기"
+
+msgid "Dark Mode"
+msgstr "어두운 모드"
+
+msgid "Develop Enviorment: Mac OS, C++, Object-C, Clang++, VS Code."
+msgstr "개발 환경: Mac OS, C++, Object-C, Clang++, VS Code."
+
+msgid "Foreground Colour"
+msgstr "전경 색상"
+
+msgid "General"
+msgstr "일반"
+
+msgid "GitHub  Repo:  Cric.WiseWriter"
+msgstr "GitHub 저장소: Cric.WiseWriter"
+
+msgid "Hide and don't paste"
+msgstr "숨기고 붙여넣지 않기"
+
+msgid "Light Mode"
+msgstr "밝은 모드"
+
+msgid "Load History"
+msgstr "기록 불러오기"
+
+msgid "Next Paste"
+msgstr "다음 붙여넣기"
+
+msgid "OK and Restart"
+msgstr "확인 및 재시작"
+
+msgid "OK"
+msgstr "확인"
+
+msgid "Paste content to source app"
+msgstr "소스 앱에 내용 붙여넣기"
+
+msgid "Previous Paste"
+msgstr "이전 붙여넣기"
+
+msgid "Restore App Prefer"
+msgstr "앱 기본 설정 복원"
+
+msgid "Save History"
+msgstr "기록 저장"
+
+msgid "Settings"
+msgstr "설정"
+
+msgid "Show Help"
+msgstr "도움말 보기"
+
+msgid "Summon WiseWriter from other app's input field"
+msgstr "다른 앱의 입력 필드에서 WiseWriter 호출"
+
+msgid "Toggle Dark Mode"
+msgstr "어두운 모드 전환"
+
+msgid "Toggle Full Screen"
+msgstr "전체 화면 전환"
+
+msgid "Version 1.0.0 Beta"
+msgstr "버전 1.0.0 베타"
+
+msgid "WiseWriter"
+msgstr "WiseWriter"
+
+msgid "© 2025 Cric. All rights reserved."
+msgstr "© 2025 Cric. 모든 권리 보유."

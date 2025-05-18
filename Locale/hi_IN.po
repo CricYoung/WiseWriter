@@ -1,0 +1,120 @@
+msgid ""
+msgstr "
+"Project-Id-Version: Cvt2Po Generated\n"
+"POT-Creation-Date: 2025-05-18 06:42:35\n"
+"PO-Revision-Date: 2025-05-18 06:42:35\n"
+"Last-Translator: Cvt2Po Tool <>\n"
+"Language-Team: Cvt2Po Tool <>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "&About"
+msgstr "विषये(&A)"
+
+msgid "&Edit"
+msgstr "संपादयितुं(&E)"
+
+msgid "&Exit"
+msgstr "निर्गच्छतुं(&X)"
+
+msgid "&File"
+msgstr "फाइल(&F)"
+
+msgid "&Help"
+msgstr "सहाय्यं(&H)"
+
+msgid "&Save History"
+msgstr "इतिहासं रक्षतुं(&S)"
+
+msgid "About WiseWriter"
+msgstr "विषये WiseWriter"
+
+msgid "About"
+msgstr "विषये"
+
+msgid "Cancel"
+msgstr "निष्कासयतुं"
+
+msgid "Chose Font"
+msgstr "फॉन्टं चयनयतुं"
+
+msgid "Chose Language ( need restart to take effect )"
+msgstr "भाषां चयनयतुं (पुनः आरम्भं आवश्यकं)"
+
+msgid "Chose Language"
+msgstr "भाषां चयनयतुं"
+
+msgid "Clear History"
+msgstr "इतिहासं शुद्धयतुं"
+
+msgid "Dark Mode"
+msgstr "अंधकारं मोडं"
+
+msgid "Develop Enviorment: Mac OS, C++, Object-C, Clang++, VS Code."
+msgstr "विकासं पर्यावरणं: Mac OS, C++, Object-C, Clang++, VS Code."
+
+msgid "Foreground Colour"
+msgstr "मुख्यं वर्णं"
+
+msgid "General"
+msgstr "सामान्यं"
+
+msgid "GitHub  Repo:  Cric.WiseWriter"
+msgstr "GitHub रिपो: Cric.WiseWriter"
+
+msgid "Hide and don't paste"
+msgstr "गुप्तं कुरुतुं च न पेस्ट् कुरुतुं"
+
+msgid "Light Mode"
+msgstr "प्रभासं मोडं"
+
+msgid "Load History"
+msgstr "इतिहासं लोडयतुं"
+
+msgid "Next Paste"
+msgstr "पश्चात् पेस्ट् कुरुतुं"
+
+msgid "OK and Restart"
+msgstr "OK च पुनः आरम्भं कुरुतुं"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Paste content to source app"
+msgstr "स्रोतं अनुप्रयोगं प्रति सामग्रीं पेस्ट् कुरुतुं"
+
+msgid "Previous Paste"
+msgstr "पूर्वं पेस्ट् कुरुतुं"
+
+msgid "Restore App Prefer"
+msgstr "अनुप्रयोगं प्रेफरं पुनः स्थापयतुं"
+
+msgid "Save History"
+msgstr "इतिहासं रक्षतुं"
+
+msgid "Settings"
+msgstr "सेटिंग्स्"
+
+msgid "Show Help"
+msgstr "सहाय्यं प्रदर्शयतुं"
+
+msgid "Summon WiseWriter from other app's input field"
+msgstr "अन्यं अनुप्रयोगं इन्पुट् क्षेत्रात् WiseWriterं आह्वयतुं"
+
+msgid "Toggle Dark Mode"
+msgstr "अंधकारं मोडं परिवर्तयतुं"
+
+msgid "Toggle Full Screen"
+msgstr "पूर्णं स्क्रिनं परिवर्तयतुं"
+
+msgid "Version 1.0.0 Beta"
+msgstr "संस्करणं 1.0.0 बीटा"
+
+msgid "WiseWriter"
+msgstr "WiseWriter"
+
+msgid "© 2025 Cric. All rights reserved."
+msgstr "© 2025 Cric. सर्वाधिकारः सुरक्षितः।"

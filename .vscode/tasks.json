@@ -1,0 +1,677 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AW.Compile Current File (Debug)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=local",
+        "MODE=debug",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AW. obj->./Objs (Debug)"
+    },
+    {
+      "label": "AWD.Compile and Link Current File (Debug+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=local",
+        "MODE=debug",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AWD. obj->./Objs exe->Workspace (Debug+Dynamic Link)"
+    },
+    {
+      "label": "AWS.Compile and Link Current File (Debug+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=local",
+        "MODE=debug",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AWS. obj->./Objs exe->Workspace (Debug+Static Link)"
+    },
+    {
+      "label": "AE.Compile Current File (Release)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=local",
+        "MODE=release",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AE. obj->./Objs (Release)"
+    },
+    {
+      "label": "AED.Compile and Link Current File (Release+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=local",
+        "MODE=release",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AED. obj->./Objs exe->Workspace (Release+Dynamic Link)"
+    },
+    {
+      "label": "AES.Compile and Link Current File (Release+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=local",
+        "MODE=release",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AES. obj->./Objs exe->Workspace (Release+Static Link)"
+    },
+    {
+      "label": "BW.Compile Current File (Debug)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=work",
+        "MODE=debug",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BW. obj->Workspace/Objs (Debug)"
+    },
+    {
+      "label": "BWD.Compile and Link Current File (Debug+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=work",
+        "MODE=debug",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BWD. obj->Workspace/Objs exe->Workspace (Debug+Dynamic Link)"
+    },
+    {
+      "label": "BWS.Compile and Link Current File (Debug+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=work",
+        "MODE=debug",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BWS. obj->Workspace/Objs exe->Workspace (Debug+Static Link)"
+    },
+    {
+      "label": "BE.Compile Current File (Release)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=work",
+        "MODE=release",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BE. obj->Workspace/Objs (Release)"
+    },
+    {
+      "label": "BED.Compile and Link Current File (Release+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=work",
+        "MODE=release",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BED. obj->Workspace/Objs exe->Workspace (Release+Dynamic Link)"
+    },
+    {
+      "label": "BES.Compile and Link Current File (Release+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "build",
+        "FILE=${file}",
+        "SCOPE=file",
+        "OUT=work",
+        "MODE=release",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BES. obj->Workspace/Objs exe->Workspace (Release+Static Link)"
+    },
+    {
+      "label": "AW.Compile All Files in Current Directory (Debug)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=local",
+        "MODE=debug",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AW. obj->./Objs (Debug)"
+    },
+    {
+      "label": "AWD.Compile and Link All Files in Current Directory (Debug+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=local",
+        "MODE=debug",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AWD. obj->./Objs exe->Workspace (Debug+Dynamic Link)"
+    },
+    {
+      "label": "AWS.Compile and Link All Files in Current Directory (Debug+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=local",
+        "MODE=debug",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AWS. obj->./Objs exe->Workspace (Debug+Static Link)"
+    },
+    {
+      "label": "AE.Compile All Files in Current Directory (Release)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=local",
+        "MODE=release",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AE. obj->./Objs (Release)"
+    },
+    {
+      "label": "AED.Compile and Link All Files in Current Directory (Release+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=local",
+        "MODE=release",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AED. obj->./Objs exe->Workspace (Release+Dynamic Link)"
+    },
+    {
+      "label": "AES.Compile and Link All Files in Current Directory (Release+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=local",
+        "MODE=release",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "AES. obj->./Objs exe->Workspace (Release+Static Link)"
+    },
+    {
+      "label": "BW.Compile All Files in Current Directory (Debug)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=work",
+        "MODE=debug",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BW. obj->Workspace/Objs (Debug)"
+    },
+    {
+      "label": "BWD.Compile and Link All Files in Current Directory (Debug+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=work",
+        "MODE=debug",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BWD. obj->Workspace/Objs exe->Workspace (Debug+Dynamic Link)"
+    },
+    {
+      "label": "BWS.Compile and Link All Files in Current Directory (Debug+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=work",
+        "MODE=debug",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BWS. obj->Workspace/Objs exe->Workspace (Debug+Static Link)"
+    },
+    {
+      "label": "BE.Compile All Files in Current Directory (Release)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=work",
+        "MODE=release",
+        "LINK=none"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BE. obj->Workspace/Objs (Release)"
+    },
+    {
+      "label": "BED.Compile and Link All Files in Current Directory (Release+Dynamic Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=work",
+        "MODE=release",
+        "LINK=dynamic"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BED. obj->Workspace/Objs exe->Workspace (Release+Dynamic Link)"
+    },
+    {
+      "label": "BES.Compile and Link All Files in Current Directory (Release+Static Link)",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j",
+        "\"$(sysctl -n hw.logicalcpu_max)\"",
+        "build",
+        "FILE=${file}",
+        "SCOPE=dir",
+        "OUT=work",
+        "MODE=release",
+        "LINK=static"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "BES. obj->Workspace/Objs exe->Workspace (Release+Static Link)"
+    }
+  ]
+}

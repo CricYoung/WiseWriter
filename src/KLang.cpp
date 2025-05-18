@@ -4,7 +4,7 @@
 #include <wx/stdpaths.h> // For wxStandardPaths
 #include <wx/config.h>
 
-
+// some languages are not availiable 
 const std::map<std::string, int> gLangMap = {
 	{"繁體中文", wxLANGUAGE_CHINESE_TRADITIONAL},
 	{"简体中文", wxLANGUAGE_CHINESE_SIMPLIFIED},
@@ -40,78 +40,6 @@ const std::map<std::string, int> gLangMap = {
 	// {"ไทย", wxLANGUAGE_THAI},
 	// {"Bahasa Melayu", wxLANGUAGE_MALAY},
 	// {"Filipino", wxLANGUAGE_FILIPINO}
-};
-
-//TODO:these sort names may not be correct
-const std::map<std::string, int> gLangFileMap = {
-	{"zh_TW", wxLANGUAGE_CHINESE_TRADITIONAL},
-	{"zh_CN", wxLANGUAGE_CHINESE_SIMPLIFIED},
-	{"en",    wxLANGUAGE_ENGLISH},
-	{"ja",    wxLANGUAGE_JAPANESE},
-	{"ko",    wxLANGUAGE_KOREAN},
-	{"fr",    wxLANGUAGE_FRENCH},
-	{"es",    wxLANGUAGE_SPANISH},
-	{"de",    wxLANGUAGE_GERMAN},
-	{"it",    wxLANGUAGE_ITALIAN},
-	{"pt",    wxLANGUAGE_PORTUGUESE},
-	{"ru",    wxLANGUAGE_RUSSIAN},
-	// {"vi", wxLANGUAGE_VIETNAMESE},
-	// {"id", wxLANGUAGE_INDONESIAN},
-	{"tr",    wxLANGUAGE_TURKISH},
-	{"pl",    wxLANGUAGE_POLISH},
-	{"nl",    wxLANGUAGE_DUTCH},
-	{"sv",    wxLANGUAGE_SWEDISH},
-	{"da",    wxLANGUAGE_DANISH},
-	{"fi",    wxLANGUAGE_FINNISH},
-	// {"no", wxLANGUAGE_NORWEGIAN},
-	{"hr",    wxLANGUAGE_CROATIAN},
-	{"sk",    wxLANGUAGE_SLOVAK},
-	{"sl",    wxLANGUAGE_SLOVENIAN},
-	{"hu",    wxLANGUAGE_HUNGARIAN},
-	{"cs",    wxLANGUAGE_CZECH},
-	{"el",    wxLANGUAGE_GREEK},
-	{"bg",    wxLANGUAGE_BULGARIAN},
-	{"ro",    wxLANGUAGE_ROMANIAN},
-	{"he",    wxLANGUAGE_HEBREW},
-	{"ar",    wxLANGUAGE_ARABIC},
-	{"hi",    wxLANGUAGE_HINDI},
-	// {"th", wxLANGUAGE_THAI},
-	// {"ms", wxLANGUAGE_MALAY},
-	// {"fil", wxLANGUAGE_FILIPINO}
-};
-
-const std::map<int, std::string> gLangFileMapRev = {
-	{wxLANGUAGE_CHINESE_TRADITIONAL, "zh_TW"},
-	{wxLANGUAGE_CHINESE_SIMPLIFIED, "zh_CN"},
-	{wxLANGUAGE_ENGLISH, "en"},
-	{wxLANGUAGE_JAPANESE, "ja"},
-	{wxLANGUAGE_KOREAN, "ko"},
-	{wxLANGUAGE_FRENCH, "fr"},
-	{wxLANGUAGE_SPANISH, "es"},
-	{wxLANGUAGE_GERMAN, "de"},
-	{wxLANGUAGE_ITALIAN, "it"},
-	{wxLANGUAGE_PORTUGUESE, "pt"},
-	{wxLANGUAGE_RUSSIAN, "ru"},
-	// {wxLANGUAGE_VIETNAMESE, "vi"},
-	// {wxLANGUAGE_INDONESIAN, "id"},
-	{wxLANGUAGE_TURKISH, "tr"},
-	{wxLANGUAGE_POLISH, "pl"},
-	{wxLANGUAGE_DUTCH, "nl"},
-	{wxLANGUAGE_SWEDISH, "sv"},
-	{wxLANGUAGE_DANISH, "da"},
-	{wxLANGUAGE_FINNISH, "fi"},
-	// {wxLANGUAGE_NORWEGIAN, "no"},
-	{wxLANGUAGE_CROATIAN, "hr"},
-	{wxLANGUAGE_SLOVAK, "sk"},
-	{wxLANGUAGE_SLOVENIAN, "sl"},
-	{wxLANGUAGE_HUNGARIAN, "hu"},
-	{wxLANGUAGE_CZECH, "cs"},
-	{wxLANGUAGE_GREEK, "el"},
-	{wxLANGUAGE_BULGARIAN, "bg"},
-	{wxLANGUAGE_ROMANIAN, "ro"},
-	{wxLANGUAGE_HEBREW, "he"},
-	{wxLANGUAGE_ARABIC, "ar"},
-	{wxLANGUAGE_HINDI, "hi"}
 };
 
 bool ConvertLangToCode(const wxString& tLang, int& tCode){
@@ -178,6 +106,7 @@ bool GetLangLocaleFilePathByLangCode(const int tLangCode, wxString& tPath,bool t
 int CheckAppLangAvailable(const wxString& tLang){
 	int tLangCode;
 	if(!ConvertLangToCode(tLang,tLangCode)) return 0; 
+	if(tLangCode == wxLANGUAGE_ENGLISH) return 0x7; // 0x1 | 0x2 | 0x4 English is always available
 	if(tLangCode == wxLANGUAGE_UNKNOWN) return 0;
 	return CheckLangLocaleFilePathByLangCode(tLangCode); // check if language is available
 };

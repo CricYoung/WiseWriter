@@ -1,0 +1,103 @@
+{
+  "version": "0.2.0","console": "integratedTerminal",
+  // "setupCommands": [
+  //   {
+  //     "description": "Enable pretty-printing for lldb",
+  //     "text": "set charset UTF-8",
+  //     "ignoreFailures": true
+  //   }
+  // ],/Applications/WiseWriter.app/Contents/MacOS/WiseWriter
+  "configurations": [
+    {
+      "name": "(lldb) Launch GuiApp ",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/GuiApp",
+      "args": ["./Design/versions.txt"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "targetArchitecture": "Arm64",
+      "externalConsole": false,
+      // "miDebuggerPath": "/usr/bin/gdb",
+      // "MIMode": "gdb"
+      "MIMode": "lldb",
+    },
+    {
+      "name": "(lldb) Launch CliApp",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/CliApp",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "targetArchitecture": "Arm64",
+      "externalConsole": false,
+      // "miDebuggerPath": "/usr/bin/gdb",
+      // "MIMode": "gdb"
+      "MIMode": "lldb",
+    },
+    {
+      "name": "(lldb) Launch This ",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/${fileBasenameNoExtension}",
+      "args": ["0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "targetArchitecture": "Arm64",
+      "externalConsole": false,
+      // "miDebuggerPath": "/usr/bin/gdb",
+      // "MIMode": "gdb"
+      "MIMode": "lldb",
+    },    
+    {
+      "name": "(lldb) Launch App ",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/Applications/WiseWriter.app/Contents/MacOS/WiseWriter",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "/Applications/WiseWriter.app/Contents/MacOS",
+      "environment": [],
+      "targetArchitecture": "Arm64",
+      "externalConsole": false,
+      // "miDebuggerPath": "/usr/bin/gdb",
+      // "MIMode": "gdb"
+      "MIMode": "lldb",
+    },
+    {
+      "name": "(lldb) Build Cur",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/${fileBasenameNoExtension}",
+      "args": [
+      ],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "targetArchitecture": "Arm64",
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "C/C++ : 目前檔案編譯和連結"
+    },
+    {
+      "name": "(lldb) Build All",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/${fileBasenameNoExtension}",
+      "args": [
+       
+      ],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "targetArchitecture": "Arm64",
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "C/C++ : 編譯和連結"
+    },
+  ]
+}

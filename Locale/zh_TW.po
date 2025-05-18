@@ -1,0 +1,129 @@
+msgid ""
+msgstr "
+"Project-Id-Version: Cvt2Po Generated\n"
+"POT-Creation-Date: 2025-05-18 06:42:35\n"
+"PO-Revision-Date: 2025-05-18 06:42:35\n"
+"Last-Translator: Cvt2Po Tool <>\n"
+"Language-Team: Cvt2Po Tool <>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "&About"
+msgstr "關於(&A)"
+
+msgid "&Edit"
+msgstr "編輯(&E)"
+
+msgid "&Exit"
+msgstr "退出(&X)"
+
+msgid "&File"
+msgstr "檔案(&F)"
+
+msgid "&Help"
+msgstr "說明(&H)"
+
+msgid "&Save History"
+msgstr "儲存(&S)"
+
+msgid "About WiseWriter"
+msgstr "關於 慧寫"
+
+msgid "About"
+msgstr "關於"
+
+msgid "Appearence"
+msgstr "外觀"
+
+msgid "Background Colour"
+msgstr "背景顏色"
+
+msgid "Built with wxWidgets (LGPL). Thank you open source community."
+msgstr "使用 wxWidgets (LGPL) 製作。感謝開源社區。"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Chose Font"
+msgstr "選擇字型"
+
+msgid "Chose Language ( need restart to take effect )"
+msgstr "選擇語言 (需要重啟)"
+
+msgid "Chose Language"
+msgstr "選擇語言"
+
+msgid "Clear History"
+msgstr "清除歷史"
+
+msgid "Dark Mode"
+msgstr "深色模式"
+
+msgid "Develop Enviorment: Mac OS, C++, Object-C, Clang++, VS Code."
+msgstr "開發環境: Mac OS, C++, Object-C, Clang++, VS Code."
+
+msgid "Foreground Colour"
+msgstr "前景顏色"
+
+msgid "General"
+msgstr "一般"
+
+msgid "GitHub  Repo:  Cric.WiseWriter"
+msgstr "GitHub 倉庫: Cric.WiseWriter"
+
+msgid "Hide and don't paste"
+msgstr "隱藏但不要貼回內容"
+
+msgid "Light Mode"
+msgstr "淺色模式"
+
+msgid "Load History"
+msgstr "載入檔案"
+
+msgid "Next Paste"
+msgstr "下一個貼上的內容"
+
+msgid "OK and Restart"
+msgstr "確定並重啟"
+
+msgid "OK"
+msgstr "確定"
+
+msgid "Paste content to source app"
+msgstr "將內容貼上到來源應用程式"
+
+msgid "Previous Paste"
+msgstr "上一個貼上的內容"
+
+msgid "Restore App Prefer"
+msgstr "恢復預設偏好設定"
+
+msgid "Save History"
+msgstr "儲存檔案"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Show Help"
+msgstr "顯示說明"
+
+msgid "Summon WiseWriter from other app's input field"
+msgstr "從其他應用程式的輸入欄位呼叫 慧寫"
+
+msgid "Toggle Dark Mode"
+msgstr "切換深色模式"
+
+msgid "Toggle Full Screen"
+msgstr "切換全螢幕"
+
+msgid "Version 1.0.0 Beta"
+msgstr "版本 1.0.0 Beta"
+
+msgid "WiseWriter"
+msgstr "慧寫"
+
+msgid "© 2025 Cric. All rights reserved."
+msgstr "© 2025 Cric. 保留所有權利。"

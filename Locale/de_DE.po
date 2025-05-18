@@ -1,0 +1,120 @@
+msgid ""
+msgstr "
+"Project-Id-Version: Cvt2Po Generated\n"
+"POT-Creation-Date: 2025-05-18 06:42:35\n"
+"PO-Revision-Date: 2025-05-18 06:42:35\n"
+"Last-Translator: Cvt2Po Tool <>\n"
+"Language-Team: Cvt2Po Tool <>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "&About"
+msgstr "Über(&A)"
+
+msgid "&Edit"
+msgstr "Bearbeiten(&E)"
+
+msgid "&Exit"
+msgstr "Beenden(&X)"
+
+msgid "&File"
+msgstr "Datei(&F)"
+
+msgid "&Help"
+msgstr "Hilfe(&H)"
+
+msgid "&Save History"
+msgstr "Verlauf speichern(&S)"
+
+msgid "About WiseWriter"
+msgstr "Über WiseWriter"
+
+msgid "About"
+msgstr "Über"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Chose Font"
+msgstr "Schriftart wählen"
+
+msgid "Chose Language ( need restart to take effect )"
+msgstr "Sprache wählen (Neustart erforderlich)"
+
+msgid "Chose Language"
+msgstr "Sprache wählen"
+
+msgid "Clear History"
+msgstr "Verlauf löschen"
+
+msgid "Dark Mode"
+msgstr "Dunkelmodus"
+
+msgid "Develop Enviorment: Mac OS, C++, Object-C, Clang++, VS Code."
+msgstr "Entwicklungsumgebung: Mac OS, C++, Object-C, Clang++, VS Code."
+
+msgid "Foreground Colour"
+msgstr "Vordergrundfarbe"
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "GitHub  Repo:  Cric.WiseWriter"
+msgstr "GitHub-Repo: Cric.WiseWriter"
+
+msgid "Hide and don't paste"
+msgstr "Ausblenden und nicht einfügen"
+
+msgid "Light Mode"
+msgstr "Hellmodus"
+
+msgid "Load History"
+msgstr "Verlauf laden"
+
+msgid "Next Paste"
+msgstr "Nächster Einfügen"
+
+msgid "OK and Restart"
+msgstr "OK und neu starten"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Paste content to source app"
+msgstr "Inhalt in die Quell-App einfügen"
+
+msgid "Previous Paste"
+msgstr "Vorheriges Einfügen"
+
+msgid "Restore App Prefer"
+msgstr "App-Einstellungen wiederherstellen"
+
+msgid "Save History"
+msgstr "Verlauf speichern"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Show Help"
+msgstr "Hilfe anzeigen"
+
+msgid "Summon WiseWriter from other app's input field"
+msgstr "WiseWriter aus dem Eingabefeld einer anderen App aufrufen"
+
+msgid "Toggle Dark Mode"
+msgstr "Dunkelmodus umschalten"
+
+msgid "Toggle Full Screen"
+msgstr "Vollbildmodus umschalten"
+
+msgid "Version 1.0.0 Beta"
+msgstr "Version 1.0.0 Beta"
+
+msgid "WiseWriter"
+msgstr "WiseWriter"
+
+msgid "© 2025 Cric. All rights reserved."
+msgstr "© 2025 Cric. Alle Rechte vorbehalten."

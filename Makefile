@@ -48,7 +48,8 @@ endif
 # 從 FILE 變數推導路徑和檔名
 SRC_DIR := $(shell dirname "$(FILE)")
 BASE_NAME := $(shell basename "$(FILE)")
-STEM := $(basename $(BASE_NAME)) # 檔案主檔名 (無副檔名)
+#STEM := $(basename $(BASE_NAME)) # 檔案主檔名 (無副檔名)
+STEM := WiseWriter # 檔案主檔名 (無副檔名)
 
 # 決定 Object 檔案的輸出目錄
 ifeq ($(OUT),local)

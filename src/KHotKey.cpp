@@ -4,35 +4,31 @@
 #include <sstream>
 
 std::string WxKeyCodeToString(int keyCode) {
+
+  // printable
   if(wxIsascii(keyCode) && wxIsprint(keyCode)) {
     return std::string(1, static_cast<char>(keyCode));
   }
-//   if (keyCode >= 'A' && keyCode <= 'Z') return std::string(1, static_cast<char>(keyCode));
-//   if (keyCode >= '0' && keyCode <= '9') return std::string(1, static_cast<char>(keyCode));
+
+  // numpad 0 ~ 9
   if(keyCode >= WXK_NUMPAD0 && keyCode <= WXK_NUMPAD9) {
     std::string tStr;
     tStr += "NumPad";
     tStr += std::to_string(keyCode - WXK_NUMPAD0);
     return tStr;
   }
+
+  // F1 ~ F24
   if(keyCode >= WXK_F1 && keyCode <= WXK_F24) {
     return "F" + std::to_string(keyCode - WXK_F1 + 1);
   }
+
+  //others
   switch (keyCode) {
     case WXK_ADD: return "+";
     case WXK_SUBTRACT: return "-";
     case WXK_MULTIPLY: return "*";
     case WXK_DIVIDE: return "/";
-    // case WXK_NUMPAD0: return "NumPad0";
-    // case WXK_NUMPAD1: return "NumPad1";
-    // case WXK_NUMPAD2: return "NumPad2";
-    // case WXK_NUMPAD3: return "NumPad3";
-    // case WXK_NUMPAD4: return "NumPad4";
-    // case WXK_NUMPAD5: return "NumPad5";
-    // case WXK_NUMPAD6: return "NumPad6";
-    // case WXK_NUMPAD7: return "NumPad7";
-    // case WXK_NUMPAD8: return "NumPad8";
-    // case WXK_NUMPAD9: return "NumPad9";
     case WXK_NUMPAD_ADD: return "NumPad+";
     case WXK_NUMPAD_SUBTRACT: return "NumPad-";
     case WXK_NUMPAD_MULTIPLY: return "NumPad*";
@@ -53,18 +49,6 @@ std::string WxKeyCodeToString(int keyCode) {
     case WXK_RIGHT: return "Right";
     case WXK_UP: return "Up";
     case WXK_DOWN: return "Down";
-    // case WXK_F1: return "F1";
-    // case WXK_F2: return "F2";
-    // case WXK_F3: return "F3";
-    // case WXK_F4: return "F4";
-    // case WXK_F5: return "F5";
-    // case WXK_F6: return "F6";
-    // case WXK_F7: return "F7";
-    // case WXK_F8: return "F8";
-    // case WXK_F9: return "F9";
-    // case WXK_F10: return "F10";
-    // case WXK_F11: return "F11";
-    // case WXK_F12: return "F12";
     default:   // 1 ~ 0x1A
       if(keyCode >= 1  && keyCode <= 0x1A){
         std::string tStr;
@@ -94,16 +78,13 @@ bool Key2Str(const StKey& key, std::string& outStr) {
 
 bool StringToWxKeyCode(const wxString& keyStr, int& keyCodeOut) {
     if(keyStr.IsEmpty()) return false;
+    //printable
     wxString k = keyStr.Upper();
     if(k.Len() == 1 && wxIsascii(k[0]) && wxIsprint(k[0])) {
         keyCodeOut = static_cast<int>(k[0].GetValue());
         return true;
     }
-    // '0' ~ '9' and 'A' ~ 'Z'
-    // if (k.Len() == 1 && wxIsalnum(k[0])) {
-        // keyCodeOut = static_cast<int>(k[0].GetValue());
-        // return true;
-    // }
+
     // 'F1' ~ 'F24'
     if (k.StartsWith("F") && k.Len() >= 2) {
         long fnum;
@@ -122,16 +103,7 @@ bool StringToWxKeyCode(const wxString& keyStr, int& keyCodeOut) {
         }
     }
 
-    // if (k == "NUMPAD0")    keyCodeOut = WXK_NUMPAD0;
-    // else if (k == "NUMPAD1")    keyCodeOut = WXK_NUMPAD1;
-    // else if (k == "NUMPAD2")    keyCodeOut = WXK_NUMPAD2;
-    // else if (k == "NUMPAD3")    keyCodeOut = WXK_NUMPAD3;
-    // else if (k == "NUMPAD4")    keyCodeOut = WXK_NUMPAD4;
-    // else if (k == "NUMPAD5")    keyCodeOut = WXK_NUMPAD5;
-    // else if (k == "NUMPAD6")    keyCodeOut = WXK_NUMPAD6;
-    // else if (k == "NUMPAD7")    keyCodeOut = WXK_NUMPAD7;
-    // else if (k == "NUMPAD8")    keyCodeOut = WXK_NUMPAD8;
-    // else if (k == "NUMPAD9")    keyCodeOut = WXK_NUMPAD9;
+    // others
     if (k == "NUMPAD+")  keyCodeOut = WXK_ADD;
     else if (k == "NUMPAD-")  keyCodeOut = WXK_SUBTRACT;
     else if (k == "NUMPAD*")  keyCodeOut = WXK_MULTIPLY;

@@ -9,7 +9,7 @@
 
 ## 🖼️ 畫面預覽
 
-![慧寫畫面預覽](images/WiseWriter_ScreenshotPreview.png)  
+![慧寫畫面預覽](docs/images/WiseWriter_ScreenshotPreview.png)  
 *AutoSave 倒數提示、狀態列語系切換、Hotkey 設定畫面與允許執行提示，通通一目了然！*
 
 ---

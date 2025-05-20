@@ -71,6 +71,7 @@ public:
 	void BindEvents();
 	void OnClose(wxCloseEvent& event);
 	void OnExit(wxCommandEvent &event);
+
 	//system Menu
 	void OnSettings(wxCommandEvent &event);
 	void OnAbout(wxCommandEvent &event);
@@ -109,7 +110,7 @@ public:
 	void DeleAppPrefer();
 	void SetDlgSettingsFromAppPrefer();
 	void SetAppPreferFromDlgSettings(); 
-	void TakeEffect(wxTextCtrl* tInput); // Set font and color by app prefer
+	void TakeEffect(wxTextCtrl* tInput); // Set font, color, and others by app prefer
 	// file helper
 	void DoLoadFromFile(const wxString& tFileName);
 	int AskSaveHistory(); // return 0 cancel, 1 save, 2 don't save, 3 no need to save
@@ -124,20 +125,53 @@ public:
 	bool IsWinFullScreen(){ wxPoint pos = GetScreenPosition(); return pos.x <= 2 && pos.y <= 2; }; 
 	void SetWinFullScreen(bool tFullScreen);
 	void CenterWindow();
-	void ShowHelp();
+	bool ShowHelp();
 	void ShowStatusHistoryIndex();
 	bool ChangeCaretForm(); // no use for TextCtrl
 	void ShowInputStatus();
-	// implement some functions as VIM
+	// VIM like functions
 	bool SetViewMod(bool tInView);
 	bool LeaveEditMode();
 	bool EnterEditMode();
+	long GetLineStartPos(){
+		long currentPos = input->GetInsertionPoint();
+		long tX,tY;
+		input->PositionToXY(currentPos,&tX,&tY);
+		return input->XYToPosition(0, tY);
+	};
+	long GetLineEndPos(long tLineCount=1){
+		long currentPos = input->GetInsertionPoint();
+		long tX,tY;
+		input->PositionToXY(currentPos,&tX,&tY);
+		return input->XYToPosition(0, tY + tLineCount);
+	};
+	bool GetLineStartEndPos(long& tStartPos, long& tEndPos,long tLineCount=1){
+		long currentPos = input->GetInsertionPoint();
+		long tX,tY;
+		input->PositionToXY(currentPos,&tX,&tY);
+		tStartPos = input->XYToPosition(0, tY);
+		tEndPos= input->XYToPosition(0, tY + tLineCount); 
+		return true;
+	};
 	void MoveCaretAhead(int tCharCount);
 	int DeleCaretChar(int tCharCount);
+	int DeleToLineEnd(){
+		long tCurPos=input->GetInsertionPoint();
+		long tLineEndPos = GetLineEndPos();
+		input->Remove(tCurPos,tLineEndPos-1); // -1 for the last char '\n'
+		return  tLineEndPos - tCurPos;
+	}
+	int DeleToLineStart(){
+		long tCurPos=input->GetInsertionPoint();
+		long tLineStartPos = GetLineStartPos();
+		input->Remove(tLineStartPos, tCurPos);
+		return tCurPos - tLineStartPos;
+	};
 	bool MoveCaretUp(int tLineCount); // negative for up, positive for down
 	void MoveCaretPgUp(){ MoveCaretUp(-(input->GetNumberOfLines()/2)); };
 	void MoveCaretPgDown(){ MoveCaretUp(input->GetNumberOfLines()/2); };
-	bool DoFindChar(int tCharCode,bool tBackward=false,int tPlusMove=0,bool tRemember=true);
+	long DoFindChar(int tCharCode,bool tBackward=false); // return -1 if not found, return new position if found
+	bool FindChar(int tCharCode,bool tBackward=false,int tPlusMove=0,bool tRemember=true);
 	int DoDeleLine(int tLineCount=1);
 	int DoDCharKey(int tKeyCode);
 	bool GetCurPhrasePos(long& tStartPos, long& tEndPos);  // phrase may be SpcLike or Alphabet phrase

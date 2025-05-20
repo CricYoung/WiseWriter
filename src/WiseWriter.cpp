@@ -14,7 +14,6 @@
 #include "DlgAbout.h"
 #include "DlgSettings.h" // For DlgSettings
 #include "DlgChoseLang.h" // For DlgChoseLang
-
 // Global variables
 enum MenuIDs {
 	ID_Menu_LoadHistory = wxID_HIGHEST + 1,
@@ -919,17 +918,17 @@ void MyFrame::SetAppPreferFromDlgSettings()
 	dlgSettings->GetIsShowKeyCountDown(bIsShowKeyCountDown);
 }
 
-void MyFrame::ShowHelp(){
+bool MyFrame::ShowHelp(){
   if(!pHelp){
+		wxString tIniFileName;
+		if(!::GetAvailableIniFullName(tIniFileName,true)) return false; 
   	pHelp=new KHelp(this,_("WiseWriter Help"));
-  	if(!pHelp) return;
+  	if(!pHelp) return false;
   	pHelp->SetSize(800,600);
   	wxSize tSize=pHelp->GetSize();
   	int X = (wxGetDisplaySize().GetWidth() - tSize.GetWidth()) / 2;
   	int Y = (wxGetDisplaySize().GetHeight() - tSize.GetHeight()) / 2;
     pHelp->SetPosition(wxPoint(X,Y));
-		wxString tIniFileName;
-		::GetAvailableIniFullName(tIniFileName,true);
 		wxFileName tFile(tIniFileName);
 		//get directory
 		wxString tDir=tFile.GetPath();
@@ -938,10 +937,11 @@ void MyFrame::ShowHelp(){
 		if(tLangCode == wxLANGUAGE_CHINESE_TRADITIONAL || tLangCode == wxLANGUAGE_CHINESE_SIMPLIFIED) tHelpFileName=tDir+"/WiseWriterHelp.txt";
 		else tHelpFileName=tDir+"/WiseWriterHelpEnglish.txt";
 		if(wxFileExists(tHelpFileName)) {
-			pHelp->LoadFile(tHelpFileName);
+			if(!pHelp->LoadFile(tHelpFileName)) return false;
 		};
 	};
   pHelp->ShowModal(); 
+	return true;
 }
 
 void MyFrame::ShowStatusHistoryIndex()
@@ -1320,14 +1320,14 @@ bool MyFrame::DoVimViewKey(wxKeyEvent &event)
 		// case 'T':
 			// DoTabKey(event.ShiftDown()); break;
 		case '0':
-		case 'U':
+		case 'U': // as numpad Home
 		  MoveCaretToLineTop(); break;
-		case '$':
-		case 'M':
+		case '4': // '$' == shift+4
+		case 'M': // as numpad End
 		  MoveCaretToLineBottom(); break;
-		case 'O':
+		case 'O': // as numpad PgUp
 			MoveCaretPgUp(); break;
-		case '.':
+		case '.': // as numpad PgDown
 			MoveCaretPgDown(); break;
 		case 'X': // Delete character under cursor
 			DeleCaretChar(1); break;
@@ -1392,11 +1392,11 @@ bool MyFrame::DoCmdAltShiftKey(wxKeyEvent &event){
 			break;
 		case 'S': // Delete to end of line
 			if(bInViewMode) return false;
-			DeleCaretChar(input->GetLastPosition() - input->GetInsertionPoint());
+			DeleToLineEnd();
 			break ;
 		case 'B': // Delete to beginning of line
 			if(bInViewMode) return false;
-			DeleCaretChar(-input->GetInsertionPoint());
+			DeleToLineStart();
 			break;
 		case '[': // Previous command in history
 			DoCmdHistoryKey(true);
@@ -1415,7 +1415,7 @@ bool MyFrame::DoCmdAltShiftKey(wxKeyEvent &event){
 bool MyFrame::DoStKey(wxKeyEvent &, StKey& tKey)
 {
 	if(tKey == oHide){
-		Hide(); 
+		::HideCurrentApp();
 		RestoreFocusToPreviousApp(); // Switch back
 		usleep(20);							 // Wait for focus switch and target app to be ready
 		return true; // Handled
@@ -1463,49 +1463,46 @@ bool MyFrame::DoStKey(wxKeyEvent &, StKey& tKey)
 	return false;
 };
 
-bool MyFrame::DoFindChar(int keyCode,bool tBackward,int tPlusMove,bool tRemember)
+bool MyFrame::FindChar(int keyCode,bool tBackward,int tPlusMove,bool tRemember)
 {
-	long currentPos = input->GetInsertionPoint();
-	long lastPos = input->GetLastPosition();
 	if(tRemember) {
 		nLastFindCharCode = keyCode; // Save the last key code
 		bLastFindBackward = tBackward; // Save the last direction
 		nLastFindPlusMove = tPlusMove; // Save the last plus move
 	}
+	long tNewPos=DoFindChar(keyCode,tBackward);
+	if(tNewPos < 0) return false;
+	 
+	input->SetInsertionPoint(tNewPos);
+	if(tPlusMove) MoveCaretAhead(tPlusMove);  
+	return true;
+};
+
+// return -1 if not found, return new position if found
+long MyFrame::DoFindChar(int keyCode,bool tBackward){
+	long currentPos = input->GetInsertionPoint();
+	long lastPos = input->GetLastPosition();
+
 	if(tBackward) {
-		if (currentPos == 0) return false; // No more lines
+		if (currentPos == 0) return -1; // No more lines
 		for(long newPos = currentPos - 2; newPos >= 0; newPos--) {
-			if (input->GetValue().GetChar(newPos) == keyCode) {
-				input->SetInsertionPoint(newPos);
-				if(tPlusMove) {
-					MoveCaretAhead(tPlusMove);  
-				}
-				return true;
-			}
+			if (input->GetValue().GetChar(newPos) == keyCode) return newPos; 
 		}
+		return -1; // Not found
 	} 
 
-	if (currentPos == lastPos) return false; // No more lines
+	if (currentPos == lastPos) return -1; // No more lines
 	for(long newPos = currentPos + 1; newPos < lastPos; newPos++) {
-		if (input->GetValue().GetChar(newPos) == keyCode) {
-			input->SetInsertionPoint(newPos);
-			if(tPlusMove) {
-				MoveCaretAhead(tPlusMove);  
-			}
-			return true;
-		}
+		if (input->GetValue().GetChar(newPos) == keyCode) return newPos;
 	}
-	return false;;
+	return -1; // Not found
 };
 
 int MyFrame::DoDeleLine(int tLineCount)
 {
 	//mark the start and end of the line
-	long currentPos = input->GetInsertionPoint();
-	long tX,tY;
-	input->PositionToXY(currentPos,&tX,&tY);
-	long lineStart = input->XYToPosition(0, tY);
-	long lineEnd = input->XYToPosition(0, tY + tLineCount);
+	long lineStart,lineEnd;
+	if(GetLineStartEndPos(lineStart,lineEnd, tLineCount) == false) return 0; // No more lines
 	input->Remove(lineStart, lineEnd);
 	// Caret automatically moves to startDelete after Remove
 	return lineEnd - lineStart; 
@@ -1561,7 +1558,6 @@ int MyFrame::DoDelePhrease(int tPhreaseCount){
 
 
 int MyFrame::DoDCharKey(int tKeyCode){
-	fprintf(stderr,"DoDCharKey tKeyCode=%i(%c)\n",tKeyCode,tKeyCode); 
 	switch(tKeyCode) {
 		case 'D': // Delete to end of line
 		case 'd':
@@ -1569,11 +1565,21 @@ int MyFrame::DoDCharKey(int tKeyCode){
 		case 'W':
 		case 'w':
 			return DoDelePhrease(1);
-		default:
+		case '4': // '$' = shift+4
+		case 'E':
+		case 'e':
+			return DeleToLineEnd();
+		case '0':
+		case 'B':
+		case 'b':
+			return DeleToLineStart();
+		default: 
 		  return false; // Not handled
 	}
 }
-// jj t? T? f? F? /?  
+
+// vim like key handling
+// jj t? T? f? F? dd d$ d0
 bool MyFrame::DoVimCombineKey(wxKeyEvent &event)
 {
 	int keyCode = event.GetKeyCode();
@@ -1582,22 +1588,22 @@ bool MyFrame::DoVimCombineKey(wxKeyEvent &event)
 	switch(nLastKeyCode){
 		case 'F':
 		  SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			DoFindChar(keyCode,true,1,true); 
+			FindChar(keyCode,true,1,true); 
 			nLastKeyCode=-1;
 			return true; 
 		case 'f':
 			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			DoFindChar(keyCode,false,1,true);  
+			FindChar(keyCode,false,1,true);  
 			nLastKeyCode=-1;
 			return true;	
 		case 'T':
 			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			DoFindChar(keyCode,true,0,true);
+			FindChar(keyCode,true,0,true);
 			nLastKeyCode=-1;
 			return true;  
 		case 't':
 			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			DoFindChar(keyCode,false,0,true); 
+			FindChar(keyCode,false,0,true); 
 			nLastKeyCode=-1;
 			return true; 
 		case 'D':
@@ -1612,16 +1618,14 @@ bool MyFrame::DoVimCombineKey(wxKeyEvent &event)
 		default:
 			break;
 	}
-	// fprintf(stderr,"DoVimCombineKey nLastKeyCode=%i(%c), keyCode=%i(%c)\n",nLastKeyCode,nLastKeyCode,keyCode,keyCode);
+	
 	switch(keyCode) {
 		case ';':
 		case 'n':
-		  // fprintf(stderr,"DoFindChar nLastFindCharCode=%i(%c), bLastFindBackward=%i, nLastFindPlusMove=%i\n",nLastFindCharCode,nLastFindCharCode,bLastFindBackward,nLastFindPlusMove);
-		  DoFindChar(nLastFindCharCode,bLastFindBackward,nLastFindPlusMove,false);
+		  FindChar(nLastFindCharCode,bLastFindBackward,nLastFindPlusMove,false);
 			return true;
 		case 'N':
-		  // fprintf(stderr,"DoFindChar nLastFindCharCode=%i(%c), bLastFindBackward=%i, nLastFindPlusMove=%i\n",nLastFindCharCode,nLastFindCharCode,bLastFindBackward,nLastFindPlusMove);
-		  DoFindChar(nLastFindCharCode,!bLastFindBackward,nLastFindPlusMove,false);
+		  FindChar(nLastFindCharCode,!bLastFindBackward,nLastFindPlusMove,false);
 			return true;
 		case 'T': 
 		case 't':

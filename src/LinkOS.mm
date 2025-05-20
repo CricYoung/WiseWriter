@@ -364,3 +364,23 @@ int MacKey2Wxk(int keycode) {
   }
 }
 
+void HideCurrentApp() {
+    // Hide the current application
+    NSRunningApplication* currentApp = [NSRunningApplication currentApplication];
+    if (currentApp) {
+        [currentApp hide];
+        // NSLog(@"Current app hidden.");
+    } else {
+        // NSLog(@"No current app to hide.");
+    }
+}
+void ShowCurrentApp() {
+    // Show the current application
+    NSRunningApplication* currentApp = [NSRunningApplication currentApplication];
+    if (currentApp) {
+        [currentApp unhide];
+        // NSLog(@"Current app shown.");
+    } else {
+        // NSLog(@"No current app to show.");
+    }
+}

@@ -3,11 +3,12 @@
 #include <wx/strconv.h>
 #include <sstream>
 
-std::string WxKeyCodeToString(int keyCode) {
+bool WxKeyCodeToString(int keyCode, std::string& outStr) {
 
   // printable
   if(wxIsascii(keyCode) && wxIsprint(keyCode)) {
-    return std::string(1, static_cast<char>(keyCode));
+    outStr=std::string(1, static_cast<char>(keyCode));
+    return true;
   }
 
   // numpad 0 ~ 9
@@ -15,49 +16,53 @@ std::string WxKeyCodeToString(int keyCode) {
     std::string tStr;
     tStr += "NumPad";
     tStr += std::to_string(keyCode - WXK_NUMPAD0);
-    return tStr;
+    outStr=tStr;
+    return true;
   }
 
   // F1 ~ F24
   if(keyCode >= WXK_F1 && keyCode <= WXK_F24) {
-    return "F" + std::to_string(keyCode - WXK_F1 + 1);
+    outStr="F" + std::to_string(keyCode - WXK_F1 + 1);
+    return true;
   }
 
   //others
   switch (keyCode) {
-    case WXK_ADD: return "+";
-    case WXK_SUBTRACT: return "-";
-    case WXK_MULTIPLY: return "*";
-    case WXK_DIVIDE: return "/";
-    case WXK_NUMPAD_ADD: return "NumPad+";
-    case WXK_NUMPAD_SUBTRACT: return "NumPad-";
-    case WXK_NUMPAD_MULTIPLY: return "NumPad*";
-    case WXK_NUMPAD_DIVIDE: return "NumPad/";
-    case WXK_NUMPAD_DECIMAL: return "NumPad.";
-    case WXK_NUMPAD_ENTER: return "NumPadEnter";
-    case WXK_SPACE: return "Space";
-    case WXK_RETURN: return "Enter";
-    case WXK_BACK: return "Backspace";
-    case WXK_TAB: return "Tab";
-    case WXK_ESCAPE: return "Escape";
-    case WXK_DELETE: return "Delete";
-    case WXK_HOME: return "Home";
-    case WXK_END: return "End";
-    case WXK_PAGEUP: return "PageUp";
-    case WXK_PAGEDOWN: return "PageDown";
-    case WXK_LEFT: return "Left";
-    case WXK_RIGHT: return "Right";
-    case WXK_UP: return "Up";
-    case WXK_DOWN: return "Down";
+    case WXK_ADD: outStr="+"; break;
+    case WXK_SUBTRACT: outStr= "-"; break;
+    case WXK_MULTIPLY: outStr= "*"; break;
+    case WXK_DIVIDE: outStr= "/"; break;
+    case WXK_NUMPAD_ADD: outStr= "NumPad+"; break;
+    case WXK_NUMPAD_SUBTRACT: outStr= "NumPad-"; break;
+    case WXK_NUMPAD_MULTIPLY: outStr= "NumPad*"; break;
+    case WXK_NUMPAD_DIVIDE: outStr= "NumPad/"; break;
+    case WXK_NUMPAD_DECIMAL: outStr= "NumPad."; break;
+    case WXK_NUMPAD_ENTER: outStr= "NumPadEnter"; break;
+    case WXK_SPACE: outStr= "Space"; break;
+    case WXK_RETURN: outStr= "Enter"; break;
+    case WXK_BACK: outStr= "Backspace"; break;
+    case WXK_TAB: outStr= "Tab"; break;
+    case WXK_ESCAPE: outStr= "Escape"; break;
+    case WXK_DELETE: outStr= "Delete"; break;
+    case WXK_HOME: outStr= "Home"; break;
+    case WXK_END: outStr= "End"; break;
+    case WXK_PAGEUP: outStr= "PageUp"; break;
+    case WXK_PAGEDOWN: outStr= "PageDown"; break;
+    case WXK_LEFT: outStr= "Left"; break;
+    case WXK_RIGHT: outStr= "Right"; break;
+    case WXK_UP: outStr= "Up"; break;
+    case WXK_DOWN: outStr= "Down"; break;
     default:   // 1 ~ 0x1A
       if(keyCode >= 1  && keyCode <= 0x1A){
         std::string tStr;
         tStr += "Ctrl+";
         tStr += 'A' + (keyCode - 1);
-        return tStr;
+        outStr= tStr;
+        break;
       }   
-      return ""; // Unknown key
+      return false; // Unknown key
   }
+  return true;
 }
 
 bool Key2Str(const StKey& key, std::string& outStr) {
@@ -68,8 +73,8 @@ bool Key2Str(const StKey& key, std::string& outStr) {
     if (key.bAlt)   oss << "Alt+";
     if (key.bShift) oss << "Shift+";
 
-    std::string keyPart = WxKeyCodeToString(key.keyCode);
-    if (keyPart.empty()) return false;
+    std::string keyPart;
+    if(!WxKeyCodeToString(key.keyCode, keyPart)) return false; // Unknown key
 
     oss << keyPart;
     outStr = oss.str();
@@ -79,58 +84,58 @@ bool Key2Str(const StKey& key, std::string& outStr) {
 bool StringToWxKeyCode(const wxString& keyStr, int& keyCodeOut) {
     if(keyStr.IsEmpty()) return false;
     //printable
-    wxString k = keyStr.Upper();
-    if(k.Len() == 1 && wxIsascii(k[0]) && wxIsprint(k[0])) {
-        keyCodeOut = static_cast<int>(k[0].GetValue());
+    wxString keyUpperStr = keyStr.Upper();
+    if(keyUpperStr.Len() == 1 && wxIsascii(keyUpperStr[0]) && wxIsprint(keyUpperStr[0])) {
+        keyCodeOut = static_cast<int>(keyUpperStr[0].GetValue());
         return true;
     }
 
     // 'F1' ~ 'F24'
-    if (k.StartsWith("F") && k.Len() >= 2) {
+    if (keyUpperStr.StartsWith("F") && keyUpperStr.Len() >= 2) {
         long fnum;
-        if (k.Mid(1).ToLong(&fnum) && fnum >= 1 && fnum <= 24) {
+        if (keyUpperStr.Mid(1).ToLong(&fnum) && fnum >= 1 && fnum <= 24) {
             keyCodeOut = WXK_F1 + (fnum - 1);
             return true;
         }
     }
 
     // 'NUMPAD0' ~ 'NUMPAD9'
-    if(k.StartsWith("NUMPAD") && k.Len() >= 7) {
+    if(keyUpperStr.StartsWith("NUMPAD") && keyUpperStr.Len() >= 7) {
         long fnum;
-        if (k.Mid(6).ToLong(&fnum) && fnum >= 0 && fnum <= 9) {
+        if (keyUpperStr.Mid(6).ToLong(&fnum) && fnum >= 0 && fnum <= 9) {
             keyCodeOut = WXK_NUMPAD0 + (fnum);
             return true;
         }
     }
 
     // others
-    if (k == "NUMPAD+")  keyCodeOut = WXK_ADD;
-    else if (k == "NUMPAD-")  keyCodeOut = WXK_SUBTRACT;
-    else if (k == "NUMPAD*")  keyCodeOut = WXK_MULTIPLY;
-    else if (k == "NUMPAD/")  keyCodeOut = WXK_DIVIDE;
-    else if (k == "NUMPADENTER")  keyCodeOut = WXK_RETURN;
-    else if (k == "NUMPAD.")  keyCodeOut = WXK_NUMPAD_DECIMAL;
-    else if (k == "SPACE")      keyCodeOut = WXK_SPACE;
-    else if (k == "ENTER")      keyCodeOut = WXK_RETURN;
-    else if (k == "RETURN")      keyCodeOut = WXK_RETURN;
-    else if (k == "BACKSPACE")  keyCodeOut = WXK_BACK;
-    else if (k == "TAB")        keyCodeOut = WXK_TAB;
-    else if (k == "ESCAPE")     keyCodeOut = WXK_ESCAPE;
-    else if (k == "ESC")     keyCodeOut = WXK_ESCAPE;
-    else if (k == "DELETE")     keyCodeOut = WXK_DELETE;
-    else if (k == "DEL")     keyCodeOut = WXK_DELETE;
-    else if (k == "HOME")       keyCodeOut = WXK_HOME;
-    else if (k == "END")        keyCodeOut = WXK_END;
-    else if (k == "PAGEUP")     keyCodeOut = WXK_PAGEUP;
-    else if (k == "PGUP")       keyCodeOut = WXK_PAGEUP;
-    else if (k == "PAGEDOWN")   keyCodeOut = WXK_PAGEDOWN;
-    else if (k == "PAGEDN")     keyCodeOut = WXK_PAGEDOWN;
-    else if (k == "PGDN")       keyCodeOut = WXK_PAGEDOWN;
-    else if (k == "UP")         keyCodeOut = WXK_UP;
-    else if (k == "DOWN")       keyCodeOut = WXK_DOWN;
-    else if (k == "DN")       keyCodeOut = WXK_DOWN;
-    else if (k == "LEFT")       keyCodeOut = WXK_LEFT;
-    else if (k == "RIGHT")      keyCodeOut = WXK_RIGHT;
+    if (keyUpperStr == "NUMPAD+")  keyCodeOut = WXK_ADD;
+    else if (keyUpperStr == "NUMPAD-")  keyCodeOut = WXK_SUBTRACT;
+    else if (keyUpperStr == "NUMPAD*")  keyCodeOut = WXK_MULTIPLY;
+    else if (keyUpperStr == "NUMPAD/")  keyCodeOut = WXK_DIVIDE;
+    else if (keyUpperStr == "NUMPADENTER")  keyCodeOut = WXK_RETURN;
+    else if (keyUpperStr == "NUMPAD.")  keyCodeOut = WXK_NUMPAD_DECIMAL;
+    else if (keyUpperStr == "SPACE")      keyCodeOut = WXK_SPACE;
+    else if (keyUpperStr == "ENTER")      keyCodeOut = WXK_RETURN;
+    else if (keyUpperStr == "RETURN")      keyCodeOut = WXK_RETURN;
+    else if (keyUpperStr == "BACKSPACE")  keyCodeOut = WXK_BACK;
+    else if (keyUpperStr == "TAB")        keyCodeOut = WXK_TAB;
+    else if (keyUpperStr == "ESCAPE")     keyCodeOut = WXK_ESCAPE;
+    else if (keyUpperStr == "ESC")     keyCodeOut = WXK_ESCAPE;
+    else if (keyUpperStr == "DELETE")     keyCodeOut = WXK_DELETE;
+    else if (keyUpperStr == "DEL")     keyCodeOut = WXK_DELETE;
+    else if (keyUpperStr == "HOME")       keyCodeOut = WXK_HOME;
+    else if (keyUpperStr == "END")        keyCodeOut = WXK_END;
+    else if (keyUpperStr == "PAGEUP")     keyCodeOut = WXK_PAGEUP;
+    else if (keyUpperStr == "PGUP")       keyCodeOut = WXK_PAGEUP;
+    else if (keyUpperStr == "PAGEDOWN")   keyCodeOut = WXK_PAGEDOWN;
+    else if (keyUpperStr == "PAGEDN")     keyCodeOut = WXK_PAGEDOWN;
+    else if (keyUpperStr == "PGDN")       keyCodeOut = WXK_PAGEDOWN;
+    else if (keyUpperStr == "UP")         keyCodeOut = WXK_UP;
+    else if (keyUpperStr == "DOWN")       keyCodeOut = WXK_DOWN;
+    else if (keyUpperStr == "DN")       keyCodeOut = WXK_DOWN;
+    else if (keyUpperStr == "LEFT")       keyCodeOut = WXK_LEFT;
+    else if (keyUpperStr == "RIGHT")      keyCodeOut = WXK_RIGHT;
     else return false;
 
     return true;

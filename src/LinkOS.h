@@ -50,3 +50,6 @@ void ActivateAppWindow();
 
 int Wxk2MacKey(int wxk); 
 int MacKey2Wxk(int keycode);
+
+void HideCurrentApp();
+void ShowCurrentApp();

@@ -9,10 +9,7 @@ CXX := /usr/bin/clang++
 # LINK = none | dynamic | static   (Provided by tasks.json)
 
 # --- Base Flags ---
-# 注意：原始的 -D YccInSingleFileTest${fileBasenameNoExtension}=2 可能無法如預期般運作，
-# 因為 ${fileBasenameNoExtension} 是 VS Code 變數，不是 make 變數。
-# 或許應該是 -D YccInSingleFileTest$(STEM)=2，但此處暫不修改。
-BASE_FLAGS = -std=gnu++17 -fobjc-arc -finput-charset=UTF-8 -fexec-charset=UTF-8 -fPIC -Wall -Wunused-parameter -Wno-ctor-dtor-privacy -Woverloaded-virtual -Wno-deprecated-declarations -DWXSUPPRESS_SIZER_FLAGS_CHECK -D YccInSingleFileTest${fileBasenameNoExtension}=2 -D_FILE_OFFSET_BITS=64
+BASE_FLAGS = -std=gnu++17 -fobjc-arc -finput-charset=UTF-8 -fexec-charset=UTF-8 -fPIC -Wall -Wunused-parameter -Wno-ctor-dtor-privacy -Woverloaded-virtual -Wno-deprecated-declarations -DWXSUPPRESS_SIZER_FLAGS_CHECK -D_FILE_OFFSET_BITS=64
 WX_CFLAGS = -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mmacosx-version-min=11.00 -I /Users/cric/wxWidgets/MacDyn/lib/wx/include/osx_cocoa-unicode-3.2 -I /Users/cric/wxWidgets/include -DwxDEBUG_LEVEL=0 -D__WXOSX_COCOA__  -fno-common
 WX_LDFLAGS = -framework IOKit -framework Carbon -framework Cocoa -framework QuartzCore -framework AudioToolbox \
   -framework System -framework OpenGL -framework WebKit \
@@ -48,8 +45,8 @@ endif
 # 從 FILE 變數推導路徑和檔名
 SRC_DIR := $(shell dirname "$(FILE)")
 BASE_NAME := $(shell basename "$(FILE)")
-#STEM := $(basename $(BASE_NAME)) # 檔案主檔名 (無副檔名)
-STEM := WiseWriter # 檔案主檔名 (無副檔名)
+#STEM := $(basename $(BASE_NAME)) # 檔案主檔名 (無副檔名) for dynamic set output executable file name
+STEM := WiseWriter # no dynamic name needed in this case
 
 # 決定 Object 檔案的輸出目錄
 ifeq ($(OUT),local)

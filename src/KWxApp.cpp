@@ -7,6 +7,7 @@
 #include "KGlobal.h" // For global functions
 #include "LinkOS.h" // For LinkOS functions
 #include "KLang.hpp" // For language functions
+
 bool MyApp::IniLocalize()
 {
 	// find os language

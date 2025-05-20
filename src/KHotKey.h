@@ -36,7 +36,7 @@ struct StKey {
   }
 };
 
-std::string WxKeyCodeToString(int keyCode) ;
+bool WxKeyCodeToString(int keyCode,std::string& outStr); ;
 
 bool Key2Str(const StKey& key, std::string& outStr) ;
 bool StringToWxKeyCode(const wxString& keyStr, int& keyCodeOut) ;

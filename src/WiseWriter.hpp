@@ -132,98 +132,102 @@ private:
     void BuildMenu(); // Added based on cpp
     void BindEvents(); // Added based on cpp
     
-	void GetSummonKey(StKey& tKey) const { tKey = oSummonKey; };
-    void UnregisterSummonKey(){
-		if(bSummonKeyRegistered) {
-			::UnregisterAppHotKey();
-			bSummonKeyRegistered = false;
-		};
-	};
-	bool IsSummonKeySameAsPasteBackKey() const {
-		return oSummonKey == oPasteBackKey;
-	};
-    void IniAutoSaveSettings();
-	void OnKeyUp(wxKeyEvent &event){ if(event.GetKeyCode() == 396) bCtrlKey = false; event.Skip(); };
-    void DoLoadHistory();
-    void DoLoadFromFile(const wxString& loadFileName);
-    bool SaveInput();
-    bool SaveHistory();
-    void DoClearHistory();
-    void DoLargeFont();
-    void DoSmallFont();
-    wxMenu* GetMenuByName(const wxString& menuName, int* menuIndex = nullptr);
-    wxMenuItem* GetMenuItemByName(wxMenu* tpMenu, const wxString& ItemName, int* ItemIndex = nullptr);
-    int GetWinWindowState();
-    void SetWinWindowState(int tState);
-    void SetWinFullScreen(bool tFullScreen);
-    bool IsWinFullScreen() { return IsFullScreen(); } // Helper
-    void CenterWindow();
-    void SaveHotkeys(wxFileConfig& tConfig);
-    bool LoadHotkeys(wxFileConfig& tConfig);
-    void SetHotkeys();
-    void SaveAppPrefer();
-    void DeleAppPrefer();
-    bool RestoreAppPrefer();
-    void TakeEffect(wxTextCtrl* tpInput);
-    void SetDlgSettingsFromAppPrefer();
-    void SetAppPreferFromDlgSettings();
-    bool ShowHelp();
-    void ShowStatusHistoryIndex();
-    int AskSaveHistory();
-    bool ChangeCaretForm();
-    void SwitchToDarkMode(bool tDarkMode);
-    bool SetViewMod(bool tInView);
-    bool LeaveEditMode();
-    bool EnterEditMode();
-    void MoveCaretAhead(int tCharCount);
-    bool MoveCaretUp(int lineDelta);
-    int DeleCaretChar(int tCharCount);
-    bool IsSpaceLike(wxUniChar tChar);
-    int NextPhrase();
-    int PrevPhrase();
-    void DoTabKey(bool tShift);
-    bool MoveCaretToLineTop();
-    bool MoveCaretToLineBottom();
-    void MoveCaretPgUp() { if(input) input->PageUp(); } // Simplified
-    void MoveCaretPgDown() { if(input) input->PageDown(); } // Simplified
-    bool DoCmdHistoryKey(bool tUp);
-    void DoPasteBack();
-    bool DoStaticKey(wxKeyEvent& event);
-    bool DoVimViewKey(wxKeyEvent& event);
-    bool DoVimEditKey(wxKeyEvent& event);
-    void ShowInputStatus();
-    void ResetCombineKey();
-    bool DoCmdAltShiftKey(wxKeyEvent& event);
-    bool DoStKey(wxKeyEvent& event, StKey& tKey); // Param changed to ref
-    bool FindChar(int keyCode, bool tBackward, int tPlusMove, bool tRemember);
-    long DoFindChar(int keyCode, bool tBackward);
-    int DeleToLineEnd() { long currentPos = input->GetInsertionPoint(); long lineEnd = input->GetLastPosition(); /* Simplified */ input->Remove(currentPos, lineEnd); return lineEnd - currentPos; }
-    int DeleToLineStart() { long currentPos = input->GetInsertionPoint(); /* Simplified */ input->Remove(0, currentPos); return currentPos; }
-    int DoDeleLine(long tLineCount);
-    bool GetCurPhrasePos(long& tStartPos, long& tEndPos); // Added declaration
-    int DoDelePhrease(int tPhreaseCount); // Added declaration
-    int DoDCharKey(int tKeyCode); // Added declaration
-    long GetLineStartPos(){
-		long currentPos = input->GetInsertionPoint();
-		long tX,tY;
-		input->PositionToXY(currentPos,&tX,&tY);
-		return input->XYToPosition(0, tY);
-	};
-	long GetLineEndPos(long tLineCount=1){
-		long currentPos = input->GetInsertionPoint();
-		long tX,tY;
-		input->PositionToXY(currentPos,&tX,&tY);
-		return input->XYToPosition(0, tY + tLineCount);
-	};
-	bool GetLineStartEndPos(long& tStartPos, long& tEndPos,long tLineCount=1){
-		long currentPos = input->GetInsertionPoint();
-		long tX,tY;
-		input->PositionToXY(currentPos,&tX,&tY);
-		tStartPos = input->XYToPosition(0, tY);
-		tEndPos= input->XYToPosition(0, tY + tLineCount); 
-		return true;
-	};
-
+   	void GetSummonKey(StKey& tKey) const { tKey = oSummonKey; };
+       void UnregisterSummonKey(){
+   		if(bSummonKeyRegistered) {
+   			::UnregisterAppHotKey();
+   			bSummonKeyRegistered = false;
+   		};
+   	};
+   	bool IsSummonKeySameAsPasteBackKey() const {
+   		return oSummonKey == oPasteBackKey;
+   	};
+       void IniAutoSaveSettings();
+   	void OnKeyUp(wxKeyEvent &event){ if(event.GetKeyCode() == 396) bCtrlKey = false; event.Skip(); };
+       void DoLoadHistory();
+       void DoLoadFromFile(const wxString& loadFileName);
+       bool SaveInput();
+       bool SaveHistory();
+       void DoClearHistory();
+       void DoLargeFont();
+       void DoSmallFont();
+       wxMenu* GetMenuByName(const wxString& menuName, int* menuIndex = nullptr);
+       wxMenuItem* GetMenuItemByName(wxMenu* tpMenu, const wxString& ItemName, int* ItemIndex = nullptr);
+       int GetWinWindowState();
+       void SetWinWindowState(int tState);
+       void SetWinFullScreen(bool tFullScreen);
+       bool IsWinFullScreen() { return IsFullScreen(); } // Helper
+       void CenterWindow();
+       void SaveHotkeys(wxFileConfig& tConfig);
+       bool LoadHotkeys(wxFileConfig& tConfig);
+       void SetHotkeys();
+       void SaveAppPrefer();
+       void DeleAppPrefer();
+       bool RestoreAppPrefer();
+       void TakeEffect(wxTextCtrl* tpInput);
+       void SetDlgSettingsFromAppPrefer();
+       void SetAppPreferFromDlgSettings();
+       bool ShowHelp();
+       void ShowStatusHistoryIndex();
+       int AskSaveHistory();
+       bool ChangeCaretForm();
+       void SwitchToDarkMode(bool tDarkMode);
+       bool SetViewMod(bool tInView);
+       bool LeaveEditMode();
+       bool EnterEditMode();
+       void MoveCaretAhead(int tCharCount);
+       bool MoveCaretUp(int lineDelta);
+       int DeleCaretChar(int tCharCount);
+       bool IsSpaceLike(wxUniChar tChar);
+       int NextPhrase();
+       int PrevPhrase();
+       void DoTabKey(bool tShift);
+       bool MoveCaretToLineTop();
+       bool MoveCaretToLineBottom();
+       void MoveCaretPgUp() { if(input) input->PageUp(); } // Simplified
+       void MoveCaretPgDown() { if(input) input->PageDown(); } // Simplified
+       bool DoCmdHistoryKey(bool tUp);
+       void DoPasteBack();
+       bool DoStaticKey(wxKeyEvent& event);
+       bool DoVimViewKey(wxKeyEvent& event);
+       bool DoVimEditKey(wxKeyEvent& event);
+       void ShowInputStatus();
+       void ResetCombineKey();
+       bool DoCmdAltShiftKey(wxKeyEvent& event);
+       bool DoStKey(wxKeyEvent& event, StKey& tKey); // Param changed to ref
+       bool FindChar(int keyCode, bool tBackward, int tPlusMove, bool tRemember);
+       long DoFindChar(int keyCode, bool tBackward);
+       int DeleToLineEnd() { long currentPos = input->GetInsertionPoint(); long lineEnd = input->GetLastPosition(); /* Simplified */ input->Remove(currentPos, lineEnd); return lineEnd - currentPos; }
+       int DeleToLineStart() { long currentPos = input->GetInsertionPoint(); /* Simplified */ input->Remove(0, currentPos); return currentPos; }
+       int DoDeleLine(long tLineCount);
+       bool GetCurPhrasePos(long& tStartPos, long& tEndPos); // Added declaration
+       int DoDelePhrease(int tPhreaseCount); // Added declaration
+       int DoDCharKey(int tKeyCode); // Added declaration
+       long GetLineStartPos(){
+   		long currentPos = input->GetInsertionPoint();
+   		long tX,tY;
+   		input->PositionToXY(currentPos,&tX,&tY);
+   		return input->XYToPosition(0, tY);
+   	};
+   	long GetLineEndPos(long tLineCount=1){
+   		long currentPos = input->GetInsertionPoint();
+   		long tX,tY;
+   		input->PositionToXY(currentPos,&tX,&tY);
+   		return input->XYToPosition(0, tY + tLineCount);
+   	};
+   	bool GetLineStartEndPos(long& tStartPos, long& tEndPos,long tLineCount=1){
+   		long currentPos = input->GetInsertionPoint();
+   		long tX,tY;
+   		input->PositionToXY(currentPos,&tX,&tY);
+   		tStartPos = input->XYToPosition(0, tY);
+   		tEndPos= input->XYToPosition(0, tY + tLineCount); 
+   		return true;
+   	};
+    long GetCurLineNumber() {
+      	long tX,tY ;
+      	input->PositionToXY(input->GetInsertionPoint(), &tX, &tY); 
+        return tY;
+    }
 
     // Vim related methods
     bool actionParsed=false;
@@ -244,17 +248,4 @@ private:
     // To ensure MyFrame can be instantiated, it needs a default constructor
     // and its event table macros if not using Bind() for all events.
     // wxDECLARE_EVENT_TABLE(); // Add if using event tables
-};
-
-// Enum for Menu IDs from WiseWriter.cpp
-enum MenuIDs {
-	ID_Menu_LoadHistory = wxID_HIGHEST + 1,
-	ID_Menu_SaveHistory,
-	ID_Menu_ClearHistory,
-	ID_Menu_Help,
-	ID_Menu_LargeFont,
-	ID_Menu_SmallFont,
-	ID_Menu_ToggleDarkMode,
-	ID_Menu_ToggleFullScreen,
-	ID_Menu_RestoreAppPrefer,
 };

@@ -1,12 +1,12 @@
 // WiseWriter.cpp
-#include "WiseWriter.hpp" // Should include LinkOS.h indirectly
 #include <wx/textfile.h> // For wxTextFile
 #include <wx/colordlg.h> // For wxColourDialog
 #include <wx/fontdlg.h> // For wxFontDialog
+#include <wx/caret.h>
 #include <wx/config.h>
 #include <wx/stdpaths.h>
-#include <wx/caret.h>
 
+#include "WiseWriter.hpp" // Should include LinkOS.h indirectly
 #include "KGlobal.hpp"
 #include "LinkOS.h"
 #include "KHotKey.hpp" // For hotkey functions
@@ -15,6 +15,19 @@
 #include "DlgSettings.hpp" // For DlgSettings
 #include "DlgChoseLang.hpp" // For DlgChoseLang
 #include "KHelp.hpp" // For KHelp
+
+// Global variables
+enum MenuIDs {
+	ID_Menu_LoadHistory = wxID_HIGHEST + 1,
+	ID_Menu_SaveHistory,
+	ID_Menu_ClearHistory,
+	ID_Menu_Help,
+	ID_Menu_LargeFont,
+	ID_Menu_SmallFont,
+	ID_Menu_ToggleDarkMode,
+	ID_Menu_ToggleFullScreen,
+	ID_Menu_RestoreAppPrefer,
+};
 
 std::string gTitle="【慧寫】:輸入輔助器"; 
 std::string gTitleEn="WiseWriter: Input Assistant";
@@ -44,7 +57,8 @@ MyFrame::MyFrame() : wxFrame(NULL, wxID_ANY, gTitle, wxDefaultPosition, wxSize(5
 	bInViewMode(false), nLastKeyCode(-1), bCtrlKey(false)
 										 
 {
-	input = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB | wxWANTS_CHARS); 
+	input = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 
+		wxTE_MULTILINE | wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB | wxWANTS_CHARS); 
 	input->SetFont(oFont);
 	input->OSXDisableAllSmartSubstitutions(); // Disable smart substitutions on macOS
 	BuildMenu(); // also effective no need CallAfter
@@ -192,7 +206,7 @@ void MyFrame::OnSettings(wxCommandEvent &)
 	if(!dlgSettings) return;
 	SetDlgSettingsFromAppPrefer();
 	dlgSettings->TakeEffect();
-	::UnregisterAppHotKey();
+	UnregisterSummonKey(); // Unregister the previous hotkey
 	int tAns=dlgSettings->ShowModal();
 	switch (tAns) {
     case wxID_OK:
@@ -383,7 +397,7 @@ void MyFrame::OnClose(wxCloseEvent &event)
   };
 	SaveAppPrefer(); // Save app Prefer
   // ::UnregisterAppHotKey();	// Ensure hotkey is unregistered
-	::UnregisterAppHotKey(); // Unregister the summon key
+	UnregisterSummonKey(); // Unregister the summon key
   event.Skip(); // Allow the frame to close
 }
 
@@ -1635,7 +1649,6 @@ int MyFrame::DoDCharKey(int tKeyCode){
 // 	nLastKeyCode = -1; 
 // 	return false;
 // };
-
 // 使用 wxEVT_KEY_DOWN 來處理所有需要在預設行為之前的鍵盤事件
 void MyFrame::OnKeyDown(wxKeyEvent &event)
 {
@@ -1974,7 +1987,10 @@ void MyFrame::VimCompiler(const std::string& cmdStr, StVimCmd& cmd)
         case 'o': cmd.action = evcOpenLineBelow; break; // No object
         case 'O': cmd.action = evcOpenLineAbove; break; // No object
         case 'r': cmd.action = evcReplaceChar; break; // Needs param
-        case 's': cmd.action = evcSubstitute; break; // Char substitute, or line with 'S'
+        case 's': cmd.action = evcSubstitute; cmd.object = evoCharacter; index++; goto end_parse; // 's' is a complete command here
+        case 'S': cmd.action = evcSubstitute; cmd.object = evoLine; index++; goto end_parse;      // 'S' is a complete command here
+        case 'l': cmd.action = evcMove; cmd.object = evoCharacter; cmd.param = 1; index++; goto end_parse; // 'l' is a move command
+        case 'h': cmd.action = evcMove; cmd.object = evoCharacter; cmd.param = -1; index++; goto end_parse; // 'h' is a move command
         case 'f': cmd.action = evcFind; cmd.object = evoFindCharForward; break; // Needs param
         case 'F': cmd.action = evcFind; cmd.object = evoFindCharBackward; break;// Needs param
         case 't': cmd.action = evcFind; cmd.object = evoTillCharForward; break; // Needs param
@@ -2041,7 +2057,8 @@ void MyFrame::VimCompiler(const std::string& cmdStr, StVimCmd& cmd)
     
     // Specific object/motion parsing if action doesn't imply object and is not param-based
     // This section is only reached if the command is not yet complete (e.g. 'd' followed by something other than 'd')
-    // And if the command takes an object (d, y, c)
+    // And if the command takes an object (d, y, c).
+    // 's', 'S', 'l', 'h' (as primary commands) should not reach here due to `goto end_parse`.
     if (cmd.action == evcDelete || cmd.action == evcYield || cmd.action == evcChange) {
         if (index < cmdStr.length()) {
             char objectChar = cmdStr[index];
@@ -2052,8 +2069,9 @@ void MyFrame::VimCompiler(const std::string& cmdStr, StVimCmd& cmd)
                 case '$': cmd.object = evoToLineEnd; break;
                 case '0': cmd.object = evoToLineStart0; break;
                 case '^': cmd.object = evoToLineStartNonBlank; break;
-                case 'l': cmd.object = evoCharacter; break; // move right
-                case 'h': cmd.object = evoCharacter; break; // move left (TODO: directionality for evoCharacter?)
+                // 'l' and 'h' as motions for d,y,c
+                case 'l': cmd.object = evoCharacter; cmd.param = 1; break; 
+                case 'h': cmd.object = evoCharacter; cmd.param = -1; break; 
                 // TODO: Inner/A text objects like "iw", "aw", "i(", "a(" etc. would need more logic
                 default:
                     cmd.action = evcUndefined; // Invalid object for d,y,c
@@ -2062,8 +2080,6 @@ void MyFrame::VimCompiler(const std::string& cmdStr, StVimCmd& cmd)
             index++;
         } else {
              // 'd', 'y', 'c' by themselves are invalid/incomplete.
-             // This should have been caught by VimParseIncompleteCmd ideally,
-             // but VimCompiler confirms it.
             cmd.action = evcUndefined;
         }
     }
@@ -2096,10 +2112,7 @@ wxString MyFrame::GetTextForMotion(StVimCmd& cmd, long& startPos, long& endPos) 
     switch(cmd.object) {
         case evoLine:
             {
-                long currentLineNum;
-								long tX,tY ;
-								input->PositionToXY(input->GetInsertionPoint(), &tX, &tY); 
-								currentLineNum = tY; // Get current line number
+                long currentLineNum=GetCurLineNumber();
                 long lastLineNum = currentLineNum + cmd.count -1;
                 if (lastLineNum >= input->GetNumberOfLines()) lastLineNum = input->GetNumberOfLines() -1;
                 
@@ -2168,30 +2181,163 @@ void MyFrame::VimExeCmd(StVimCmd& cmd)
 
                 switch (cmd.object) {
                     case evoWord:
-                        // For "dw", cmd.count is 1. If "2dw", cmd.count is 2.
-                        // So the loop for cmd.count is already handled by the compiler setting cmd.count.
-                        // We just need to delete one "object unit" here, which might span multiple words if count was on motion.
-                        // This interpretation means the outer cmd.count loop should mostly be 1.
-                        // Let's assume compiler sets cmd.count correctly for "2dw" etc.
-                        // Thus, the loop `for (int i = 0; i < cmd.count; ++i)` above might be redundant if count is part of motion.
-                        // For "dd", count is for lines. For "d2w", count is 2 for words.
-                        // The current compiler logic sets cmd.count for d(2w) -> cmd.count = 2, cmd.object = evoWord
-                        // Let's simplify: the loop for (int i=0; i<cmd.count... ) applies to the "motion" part.
-                        // This means DeleCaretChar(cmd.count) for evoCharacter is correct.
-                        // DoDeleLine(cmd.count) for evoLine is correct.
-                        // For evoWord with "d2w" (cmd.count=2), we need to delete 2 words.
+                        // For "dw" or "Ndw" (e.g., 2dw)
+                        // Vim's "dw" deletes from cursor to the start of the next word.
+                        // If cursor is on whitespace, it deletes that whitespace and the following word.
                         {
-                            long startDel, endDel;
-                            for(int w=0; w<cmd.count; ++w) {
-                                if(w>0) input->SetInsertionPoint(startDel); // after first word deletion, cursor is at startDel
-                                if (!GetCurPhrasePos(startDel, endDel) || startDel == endDel) break; // No phrase or empty
-                                input->Remove(startDel, endDel);
-                                if(w < cmd.count -1 && startDel == input->GetLastPosition()) break; // if deleted to end
+                            long currentPos = input->GetInsertionPoint();
+                            long finalDeletionEnd = currentPos;
+
+                            for (int k = 0; k < cmd.count; ++k) {
+                                long wordStart = input->GetInsertionPoint();
+                                long wordEnd = wordStart;
+                                long lastPos = input->GetLastPosition();
+
+                                if (wordStart >= lastPos) break; // Nothing to delete
+
+                                wxUniChar charAtCursor = input->GetValue().GetChar(wordStart);
+                                bool cursorOnSpace = IsSpaceLike(charAtCursor);
+
+                                if (cursorOnSpace) {
+                                    // Delete spaces up to the next word
+                                    while (wordEnd < lastPos && IsSpaceLike(input->GetValue().GetChar(wordEnd))) {
+                                        wordEnd++;
+                                    }
+                                    // Now wordEnd is at the start of the next word (or EOL/EOF)
+                                    // We also need to delete the word itself
+                                    long nextWordActualStart = wordEnd;
+                                    while (wordEnd < lastPos && !IsSpaceLike(input->GetValue().GetChar(wordEnd))) {
+                                        wordEnd++;
+                                    }
+                                     // If only spaces were found till EOL/EOF, wordEnd remains nextWordActualStart
+                                    if (nextWordActualStart == wordEnd && nextWordActualStart < lastPos) { 
+                                        // This means we were on trailing spaces. Delete them.
+                                    }
+
+                                } else {
+                                    // Cursor is on a word character. Delete to start of next word.
+                                    // Find end of current word
+                                    long currentWordEnd = wordStart;
+                                    while (currentWordEnd < lastPos && !IsSpaceLike(input->GetValue().GetChar(currentWordEnd))) {
+                                        currentWordEnd++;
+                                    }
+                                    // Find start of next word (skip spaces)
+                                    wordEnd = currentWordEnd;
+                                    while (wordEnd < lastPos && IsSpaceLike(input->GetValue().GetChar(wordEnd))) {
+                                        wordEnd++;
+                                    }
+                                    // If currentWordEnd was already at EOL/EOF, or only spaces followed,
+                                    // then wordEnd will be currentWordEnd or lastPos.
+                                    // In this case, dw deletes to EOL.
+                                    if (wordEnd == currentWordEnd || // no spaces after word
+                                        (wordEnd == lastPos && IsSpaceLike(input->GetValue().GetChar(wordEnd-1))) ) { // spaces until EOF
+                                         wordEnd = currentWordEnd; // delete only the word if no spaces to next word or at end.
+                                                                   // More accurately for vim: delete word and spaces AFTER it.
+                                                                   // If no next word, delete to end of line.
+                                         if (currentWordEnd < lastPos) { // If not at very end of text
+                                             wordEnd = currentWordEnd;
+                                             // check if there is a next word or just spaces
+                                             long tempNextWordStart = currentWordEnd;
+                                             while(tempNextWordStart < lastPos && IsSpaceLike(input->GetValue().GetChar(tempNextWordStart))) {
+                                                 tempNextWordStart++;
+                                             }
+                                             if(tempNextWordStart < lastPos && !IsSpaceLike(input->GetValue().GetChar(tempNextWordStart))) {
+                                                 // there is a next word, delete spaces up to it
+                                                 wordEnd = tempNextWordStart;
+                                             } else { // no next word, delete to end of current word (Vim usually takes spaces before next line)
+                                                      // For 'dw' at end of line, it's just the word.
+                                                      // If 'dw' on last word of line, it deletes word. If spaces after, they are kept.
+                                                      // This is tricky. Let's try: wordEnd is start of next word OR end of current word if last on line.
+                                                 wordEnd = tempNextWordStart; // This includes spaces after word
+                                                 if (wordEnd > lastPos) wordEnd = lastPos;
+
+                                                 // Vim's dw on last word of line: deletes word.
+                                                 // Vim's dw on word not last on line: deletes word + spaces before next word.
+                                                 // If currentWordEnd is end of word, and it's followed by spaces then newline:
+                                                 // wordEnd should be start of next word.
+                                                 // If currentWordEnd is end of word, and it's followed by newline (no spaces):
+                                                 // wordEnd is currentWordEnd.
+                                                 // If currentWordEnd is end of word, and it's followed by spaces then EOF:
+                                                 // wordEnd is currentWordEnd.
+
+                                                 // Reset to simpler: delete current word and following spaces
+                                                 wordEnd = currentWordEnd; // end of current word
+                                                 while(wordEnd < lastPos && IsSpaceLike(input->GetValue().GetChar(wordEnd)) && input->GetValue().GetChar(wordEnd) != '\n') {
+                                                     wordEnd++; // consume spaces on same line
+                                                 }
+                                                 // If wordEnd is now start of next word due to spaces, fine.
+                                                 // If wordEnd is at EOL, and original word was not at EOL, include spaces.
+                                                 // If word was last on line, wordEnd = currentWordEnd.
+                                                 if (input->GetValue().GetChar(wordStart) == '\n') wordEnd = wordStart; // safety for blank lines.
+                                                 else if (currentWordEnd == lastPos) wordEnd = lastPos; // word is at EOF
+                                                 else if (input->GetValue().GetChar(currentWordEnd)=='\n') wordEnd = currentWordEnd; // word is last on line before newline
+                                                 // else wordEnd includes spaces after it on the same line.
+                                             }
+                                    }
+                                }
+                                if (wordStart == wordEnd && wordStart < lastPos) { // single char delete or space
+                                     if (IsSpaceLike(input->GetValue().GetChar(wordStart))) { // if it was a space
+                                          wordEnd = wordStart +1; // delete at least one space
+                                          while(wordEnd < lastPos && IsSpaceLike(input->GetValue().GetChar(wordEnd))) wordEnd++;
+                                          long tempNextWord = wordEnd;
+                                          while(tempNextWord < lastPos && !IsSpaceLike(input->GetValue().GetChar(tempNextWord))) tempNextWord++;
+                                          wordEnd = tempNextWord; // delete spaces and the next word
+                                     } else {
+                                          wordEnd = wordStart +1; // delete the char
+                                     }
+                                }
+
+
+                                if (wordStart < wordEnd) {
+                                    input->Remove(wordStart, wordEnd);
+                                    finalDeletionEnd = wordStart; // Caret position after deletion
+                                    input->SetInsertionPoint(finalDeletionEnd);
+                                } else if (wordStart == lastPos && k==0) { // dw at EOF
+                                     break; // nothing to do
+                                } else { // No word found or some other edge case
+                                    break;
+                                }
+                            }
+                            input->SetInsertionPoint(finalDeletionEnd); // Final cursor position
+                            bCmdHandled = true;
+                        }
+											}
+                        break;
+                    case evoLine: // Handles "dd", "2dd", etc.
+                        {
+                            long finalCursorPos = input->GetInsertionPoint();
+                            bool firstLineDeleted = false;
+                            for (int k = 0; k < cmd.count; ++k) {
+                                if (input->GetNumberOfLines() == 0 || (input->GetNumberOfLines()==1 && input->GetLineLength(0)==0) ) break; // No more lines to delete or only one empty line left
+
+                                if (firstLineDeleted) { // For k > 0, re-evaluate cursor position
+                                     input->SetInsertionPoint(finalCursorPos);
+                                     if (input->GetInsertionPoint() >= input->GetLastPosition() && input->GetLastPosition() > 0) {
+                                         // If cursor is at very end, but there might be lines above
+                                         long currentLineNum = GetCurLineNumber();
+                                         if (currentLineNum >= input->GetNumberOfLines()) currentLineNum = input->GetNumberOfLines() -1;
+                                         if (currentLineNum <0) currentLineNum =0;
+                                         input->SetInsertionPoint(input->XYToPosition(0,currentLineNum));
+
+                                     }
+                                }
+                                if (input->GetInsertionPoint() == input->GetLastPosition() && input->GetLastPosition() > 0 && input->GetValue().Last() != '\n' && input->GetNumberOfLines() > 1) {
+                                    // If at end of file, but not on a newline, and it's not the only line,
+                                    // this means cursor is on last char of last line. Deleting this line means deleting from its start.
+                                     long curLineNum = GetCurLineNumber();
+                                     input->SetInsertionPoint(input->XYToPosition(0, curLineNum));
+                                }
+
+
+                                if (!DoDeleLine(1)) { // DoDeleLine(1) should delete the current line
+                                    break; // Stop if deletion failed (e.g., no more lines)
+                                }
+                                finalCursorPos = input->GetInsertionPoint(); // DoDeleLine should set cursor correctly
+                                firstLineDeleted = true;
                             }
                             bCmdHandled = true;
                         }
                         break;
-                    case evoLine: DoDeleLine(cmd.count); bCmdHandled = true; break;
                     case evoToLineEnd: DeleToLineEnd(); bCmdHandled = true; break;
                     case evoToLineStart0: DeleToLineStart(); bCmdHandled = true; break;
                     case evoCharacter: DeleCaretChar(cmd.count); bCmdHandled = true; break; // 'x' or 'dl'

@@ -391,9 +391,9 @@ int VimTestsMain(int argc, char **argv) {
     
     // Hack to try and get wxEntry to work for basic wxString etc.
     // This is not a full GUI app init.
-    if (!wxEntryStart(argc, argv)) {
-        std::cerr << "wxEntryStart failed. Some tests might not work correctly." << std::endl;
-    }
+    // if (!wxEntryStart(argc, argv)) {
+        // std::cerr << "wxEntryStart failed. Some tests might not work correctly." << std::endl;
+    // }
 
 
     TestVimCompiler();

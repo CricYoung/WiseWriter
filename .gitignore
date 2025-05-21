@@ -2,5 +2,6 @@
 .DS_Store
 node_modules/
 Objs/
+srcBk/
 未命名.txt
 Locale/*.strings

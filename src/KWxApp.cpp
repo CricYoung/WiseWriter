@@ -2,11 +2,12 @@
 #include <wx/stdpaths.h> // For wxStandardPaths
 #include <wx/filename.h> // For wxFileName
 
-#include "KWxApp.h"
-#include "WiseWriter.h" // For MyFrame
-#include "KGlobal.h" // For global functions
+#include "KWxApp.hpp"
+#include "WiseWriter.hpp" // For MyFrame
+#include "KGlobal.hpp" // For global functions
 #include "LinkOS.h" // For LinkOS functions
 #include "KLang.hpp" // For language functions
+int VimTestsMain(int argc, char **argv) ;
 
 bool MyApp::IniLocalize()
 {
@@ -80,9 +81,7 @@ bool MyApp::OnInit()
 			_("WiseWriter needs system permission"), wxOK | wxICON_INFORMATION);
   };
 	frame->LoadAppPrefer(); // Load app Prefeif(bSummonKeyRegistered) ::UnregisterSummonKey(); // Unregister the previous hotkey
-
 	frame->RegistSummonKey(); // Register the summon key	
-	frame->ShowInputStatus(); // Show input status
 	frame->Show(); // Optional: Show the frame immediately
 	// get parameter
 	MyApp* app = dynamic_cast<MyApp*>(wxApp::GetInstance());
@@ -93,6 +92,7 @@ bool MyApp::OnInit()
 			ActivateAppWindow(); // Bring the app to front
 		};
 	}
+	VimTestsMain(app->argc, app->argv); // Run tests if needed
 	return true; // Initialization successful
 }
 

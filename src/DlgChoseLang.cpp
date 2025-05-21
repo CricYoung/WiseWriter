@@ -1,5 +1,5 @@
 // ==== DlgChoseLang ====
-#include "DlgChoseLang.h"
+#include "DlgChoseLang.hpp"
 
 DlgChoseLang::DlgChoseLang(wxWindow* parent, const wxString& title)
 	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxSize(300, 200))

@@ -1,23 +1,24 @@
 // WiseWriter.h
-#ifndef WISEWRITER_H
-#define WISEWRITER_H
 
+#pragma once
+#include <vector>
+#include <string> // Required for std::string
 #include <wx/wx.h>
 #include <wx/textctrl.h>
 #include <wx/string.h>
-#include <vector>
-#include <string> // Required for std::string
+#include <wx/config.h> // For wxFileConfig
 
+#include "KHotKey.hpp"
 // Forward declarations if necessary for types used in MyFrame
 class DlgSettings;
 class KHelp;
-struct StKey; // Assuming StKey is defined elsewhere, possibly KHotKey.h
+// struct StKey;
 
 // Enum for Vim commands (from previous step)
 typedef enum {
     evcUndefined, evcDelete, evcChange, evcYield, evcFind, evcPut, evcInsert, evcAppend,
     evcOpenLineBelow, evcOpenLineAbove, evcReplaceChar, evcSubstitute, evcVisual,
-    evcUndo, evcRedo
+    evcUndo, evcRedo, evcMove, evcSelect, evcSelectLine, evcSelectWord,
 } EVimCmd;
 
 // Enum for Vim objects/motions (from previous step)
@@ -47,22 +48,23 @@ public:
 
     // Event Handlers - taken from BindEvents in cpp
     void OnKeyDown(wxKeyEvent& event);
-    void OnKeyUp(wxKeyEvent& event); // Added based on cpp
     void OnClose(wxCloseEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnSettings(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnLoadHistory(wxCommandEvent& event);
-    void OnSaveHistory(wxCommandEvent& event);
+	void OnSaveHistory(wxCommandEvent &){ SaveHistory(); };
     void OnClearHistory(wxCommandEvent& event);
-    void OnShowHelp(wxCommandEvent& event);
-    void OnSwitchDarkMode(wxCommandEvent& event); // Added based on cpp
+	void OnShowHelp(wxCommandEvent &){ ShowHelp(); };
+	void OnSwitchDarkMode(wxCommandEvent &){ SwitchToDarkMode(!bIsDarkMode); };
+	void OnRestoreAppPrefer(wxCommandEvent &){ RestoreAppPrefer(); };
     void OnTogFullScreen(wxCommandEvent& event); // Added based on cpp
-    void OnRestoreAppPrefer(wxCommandEvent& event); // Added based on cpp
     void OnSystemColorChanged(wxSysColourChangedEvent& event); // Added based on cpp
     void OnIdle(wxIdleEvent& event); // Added based on cpp
     void OnAutoSaveTimer(wxTimerEvent& event); // Added based on cpp
-
+		//for wxApp to call
+    bool LoadAppPrefer();
+    bool RegistSummonKey(); // Register the summon key
     static void SummonHotkeyHandler(void* userData); // Added based on cpp
 
 private:
@@ -89,8 +91,9 @@ private:
     int nCurSecCountDown;
     int nCurKeyCountDown;
     
-    bool bIsAutoSaveBySecCount = false;
+    bool bIsAutoSaveByKeyCount = false;
     int nAutoSaveKeyCount;
+    bool bIsAutoSaveBySecCount = false;
     int nAutoSaveSecCount;
     bool bIsShowTimeCountDown = false;
     bool bIsShowKeyCountDown = false;
@@ -106,19 +109,18 @@ private:
 
     wxString LanguageName;
 
-    // Assuming StKey is defined elsewhere (e.g. KHotKey.h which is included in WiseWriter.cpp)
-    StKey* oSummonKey = nullptr; // Using pointers and initializing to avoid needing full StKey definition here
-    StKey* oPasteBackKey = nullptr;
-    StKey* oPrevPasteKey = nullptr;
-    StKey* oNextPasteKey = nullptr;
-    StKey* oHide = nullptr;
-    StKey* oToggleDarkMode = nullptr;
-    StKey* oToggleFullScreen = nullptr;
-    StKey* oRestoreAppPrefer = nullptr;
-    StKey* oLoadHistory = nullptr;
-    StKey* oSaveHistory = nullptr;
-    StKey* oClearHistory = nullptr;
-    StKey* oShowHelp = nullptr;
+    StKey oSummonKey ; 
+    StKey oPasteBackKey ;
+    StKey oPrevPasteKey ;
+    StKey oNextPasteKey ;
+    StKey oHide ;
+    StKey oToggleDarkMode ;
+    StKey oToggleFullScreen ;
+    StKey oRestoreAppPrefer ;
+    StKey oLoadHistory ;
+    StKey oSaveHistory ;
+    StKey oClearHistory ;
+    StKey oShowHelp ;
 
     int nLastFindCharCode;
     bool bLastFindBackward;
@@ -130,6 +132,18 @@ private:
     void BuildMenu(); // Added based on cpp
     void BindEvents(); // Added based on cpp
     
+	void GetSummonKey(StKey& tKey) const { tKey = oSummonKey; };
+    void UnregisterSummonKey(){
+		if(bSummonKeyRegistered) {
+			::UnregisterAppHotKey();
+			bSummonKeyRegistered = false;
+		};
+	};
+	bool IsSummonKeySameAsPasteBackKey() const {
+		return oSummonKey == oPasteBackKey;
+	};
+    void IniAutoSaveSettings();
+	void OnKeyUp(wxKeyEvent &event){ if(event.GetKeyCode() == 396) bCtrlKey = false; event.Skip(); };
     void DoLoadHistory();
     void DoLoadFromFile(const wxString& loadFileName);
     bool SaveInput();
@@ -148,7 +162,6 @@ private:
     bool LoadHotkeys(wxFileConfig& tConfig);
     void SetHotkeys();
     void SaveAppPrefer();
-    bool LoadAppPrefer();
     void DeleAppPrefer();
     bool RestoreAppPrefer();
     void TakeEffect(wxTextCtrl* tpInput);
@@ -186,14 +199,35 @@ private:
     long DoFindChar(int keyCode, bool tBackward);
     int DeleToLineEnd() { long currentPos = input->GetInsertionPoint(); long lineEnd = input->GetLastPosition(); /* Simplified */ input->Remove(currentPos, lineEnd); return lineEnd - currentPos; }
     int DeleToLineStart() { long currentPos = input->GetInsertionPoint(); /* Simplified */ input->Remove(0, currentPos); return currentPos; }
-    bool GetLineStartEndPos(long& lineStart, long& lineEnd, int tLineCount); // Added declaration
-    int DoDeleLine(int tLineCount);
+    int DoDeleLine(long tLineCount);
     bool GetCurPhrasePos(long& tStartPos, long& tEndPos); // Added declaration
     int DoDelePhrease(int tPhreaseCount); // Added declaration
     int DoDCharKey(int tKeyCode); // Added declaration
+    long GetLineStartPos(){
+		long currentPos = input->GetInsertionPoint();
+		long tX,tY;
+		input->PositionToXY(currentPos,&tX,&tY);
+		return input->XYToPosition(0, tY);
+	};
+	long GetLineEndPos(long tLineCount=1){
+		long currentPos = input->GetInsertionPoint();
+		long tX,tY;
+		input->PositionToXY(currentPos,&tX,&tY);
+		return input->XYToPosition(0, tY + tLineCount);
+	};
+	bool GetLineStartEndPos(long& tStartPos, long& tEndPos,long tLineCount=1){
+		long currentPos = input->GetInsertionPoint();
+		long tX,tY;
+		input->PositionToXY(currentPos,&tX,&tY);
+		tStartPos = input->XYToPosition(0, tY);
+		tEndPos= input->XYToPosition(0, tY + tLineCount); 
+		return true;
+	};
 
 
     // Vim related methods
+    bool actionParsed=false;
+    wxString GetTextForMotion(StVimCmd& cmd, long& startPos, long& endPos);
     void VimKeyProc(wxKeyEvent& event);
     bool VimParseIncompleteCmd(const std::string& buffer, StVimCmd& cmd); // Parses potentially incomplete command
     void VimCompiler(const std::string& cmdStr, StVimCmd& cmd);          // Parses a complete command string
@@ -224,6 +258,3 @@ enum MenuIDs {
 	ID_Menu_ToggleFullScreen,
 	ID_Menu_RestoreAppPrefer,
 };
-
-
-#endif // WISEWRITER_H

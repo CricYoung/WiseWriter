@@ -6,7 +6,7 @@
 //include
 #include <string>
 #include <wx/wx.h>
-#include "KWxColor.h"
+#include "KWxColor.hpp"
 
 // use VDefaultAlpha to adjust alpha value(opacity) default value is 255 for all predefined colors
 int VDefaultAlpha=255;

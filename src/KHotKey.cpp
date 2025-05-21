@@ -1,5 +1,5 @@
 // KHotKey.cpp
-#include "KHotKey.h"
+#include "KHotKey.hpp"
 #include <wx/strconv.h>
 #include <sstream>
 

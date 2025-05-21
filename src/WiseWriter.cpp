@@ -1,34 +1,25 @@
 // WiseWriter.cpp
+#include "WiseWriter.hpp" // Should include LinkOS.h indirectly
 #include <wx/textfile.h> // For wxTextFile
 #include <wx/colordlg.h> // For wxColourDialog
 #include <wx/fontdlg.h> // For wxFontDialog
-#include <wx/caret.h>
 #include <wx/config.h>
 #include <wx/stdpaths.h>
+#include <wx/caret.h>
 
-#include "WiseWriter.h" // Should include LinkOS.h indirectly
-#include "KGlobal.h"
+#include "KGlobal.hpp"
 #include "LinkOS.h"
-#include "KHotKey.h" // For hotkey functions
-#include "KWxColor.h" // For wxColour
-#include "DlgAbout.h"
-#include "DlgSettings.h" // For DlgSettings
-#include "DlgChoseLang.h" // For DlgChoseLang
-// Global variables
-enum MenuIDs {
-	ID_Menu_LoadHistory = wxID_HIGHEST + 1,
-	ID_Menu_SaveHistory,
-	ID_Menu_ClearHistory,
-	ID_Menu_Help,
-	ID_Menu_LargeFont,
-	ID_Menu_SmallFont,
-	ID_Menu_ToggleDarkMode,
-	ID_Menu_ToggleFullScreen,
-	ID_Menu_RestoreAppPrefer,
-};
+#include "KHotKey.hpp" // For hotkey functions
+#include "KWxColor.hpp" // For wxColour
+#include "DlgAbout.hpp"
+#include "DlgSettings.hpp" // For DlgSettings
+#include "DlgChoseLang.hpp" // For DlgChoseLang
+#include "KHelp.hpp" // For KHelp
 
 std::string gTitle="【慧寫】:輸入輔助器"; 
 std::string gTitleEn="WiseWriter: Input Assistant";
+const int CCheckTimerPerMiniSec = 10000;
+const int CCheckTimerPerSec = CCheckTimerPerMiniSec / 1000;
 // --- listHotKeys contents ---
 StHotkeySet DefHotkeySets[] = {
 	{ "Summon", "Cmd+Enter", _("Summon WiseWriter from other app's input field") },
@@ -53,8 +44,7 @@ MyFrame::MyFrame() : wxFrame(NULL, wxID_ANY, gTitle, wxDefaultPosition, wxSize(5
 	bInViewMode(false), nLastKeyCode(-1), bCtrlKey(false)
 										 
 {
-	input = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 
-		wxTE_MULTILINE | wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB | wxWANTS_CHARS); 
+	input = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB | wxWANTS_CHARS); 
 	input->SetFont(oFont);
 	input->OSXDisableAllSmartSubstitutions(); // Disable smart substitutions on macOS
 	BuildMenu(); // also effective no need CallAfter
@@ -202,7 +192,7 @@ void MyFrame::OnSettings(wxCommandEvent &)
 	if(!dlgSettings) return;
 	SetDlgSettingsFromAppPrefer();
 	dlgSettings->TakeEffect();
-	UnregisterSummonKey(); // Unregister the previous hotkey
+	::UnregisterAppHotKey();
 	int tAns=dlgSettings->ShowModal();
 	switch (tAns) {
     case wxID_OK:
@@ -393,7 +383,7 @@ void MyFrame::OnClose(wxCloseEvent &event)
   };
 	SaveAppPrefer(); // Save app Prefer
   // ::UnregisterAppHotKey();	// Ensure hotkey is unregistered
-	UnregisterSummonKey(); // Unregister the summon key
+	::UnregisterAppHotKey(); // Unregister the summon key
   event.Skip(); // Allow the frame to close
 }
 
@@ -1498,7 +1488,7 @@ long MyFrame::DoFindChar(int keyCode,bool tBackward){
 	return -1; // Not found
 };
 
-int MyFrame::DoDeleLine(int tLineCount)
+int MyFrame::DoDeleLine(long tLineCount)
 {
 	//mark the start and end of the line
 	long lineStart,lineEnd;
@@ -1580,71 +1570,72 @@ int MyFrame::DoDCharKey(int tKeyCode){
 
 // vim like key handling
 // jj t? T? f? F? dd d$ d0
-bool MyFrame::DoVimCombineKey(wxKeyEvent &event)
-{
-	int keyCode = event.GetKeyCode();
-	bool tShift = event.ShiftDown();
-	if(!tShift) keyCode = wxTolower(keyCode); 
-	switch(nLastKeyCode){
-		case 'F':
-		  SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			FindChar(keyCode,true,1,true); 
-			nLastKeyCode=-1;
-			return true; 
-		case 'f':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			FindChar(keyCode,false,1,true);  
-			nLastKeyCode=-1;
-			return true;	
-		case 'T':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			FindChar(keyCode,true,0,true);
-			nLastKeyCode=-1;
-			return true;  
-		case 't':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
-			FindChar(keyCode,false,0,true); 
-			nLastKeyCode=-1;
-			return true; 
-		case 'D':
-		case 'd':
-			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1);
-			if(!DoDCharKey(keyCode)) break;
-			nLastKeyCode=-1;
-			return true;
-		// case '/': 
-		// case 'Y':
-		  // return true;
-		default:
-			break;
-	}
+// bool MyFrame::DoVimCombineKey(wxKeyEvent &event)
+// {
+// 	int keyCode = event.GetKeyCode();
+// 	bool tShift = event.ShiftDown();
+// 	if(!tShift) keyCode = wxTolower(keyCode); 
+// 	switch(nLastKeyCode){
+// 		case 'F':
+// 		  SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+// 			FindChar(keyCode,true,1,true); 
+// 			nLastKeyCode=-1;
+// 			return true; 
+// 		case 'f':
+// 			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+// 			FindChar(keyCode,false,1,true);  
+// 			nLastKeyCode=-1;
+// 			return true;	
+// 		case 'T':
+// 			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+// 			FindChar(keyCode,true,0,true);
+// 			nLastKeyCode=-1;
+// 			return true;  
+// 		case 't':
+// 			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1); 
+// 			FindChar(keyCode,false,0,true); 
+// 			nLastKeyCode=-1;
+// 			return true; 
+// 		case 'D':
+// 		case 'd':
+// 			SetStatusText(wxString::Format(" %c%c ",nLastKeyCode, keyCode), 1);
+// 			if(!DoDCharKey(keyCode)) break;
+// 			nLastKeyCode=-1;
+// 			return true;
+// 		// case '/': 
+// 		// case 'Y':
+// 		  // return true;
+// 		default:
+// 			break;
+// 	}
 	
-	switch(keyCode) {
-		case ';':
-		case 'n':
-		  FindChar(nLastFindCharCode,bLastFindBackward,nLastFindPlusMove,false);
-			return true;
-		case 'N':
-		  FindChar(nLastFindCharCode,!bLastFindBackward,nLastFindPlusMove,false);
-			return true;
-		case 'T': 
-		case 't':
-		case 'F':
-		case 'f':
-		case 'D': 
-		case 'd':
-		// case 'Y': 
-		// case 'y':
-		// case '/':
-			nLastKeyCode = keyCode; // Save the last key code
-			SetStatusText(wxString::Format(" %c ", keyCode), 1); // Show status 
-			return true; // Handled
-		default:
-		  break;
-	}
-	nLastKeyCode = -1; 
-	return false;
-};
+// 	switch(keyCode) {
+// 		case ';':
+// 		case 'n':
+// 		  FindChar(nLastFindCharCode,bLastFindBackward,nLastFindPlusMove,false);
+// 			return true;
+// 		case 'N':
+// 		  FindChar(nLastFindCharCode,!bLastFindBackward,nLastFindPlusMove,false);
+// 			return true;
+// 		case 'T': 
+// 		case 't':
+// 		case 'F':
+// 		case 'f':
+// 		case 'D': 
+// 		case 'd':
+// 		// case 'Y': 
+// 		// case 'y':
+// 		// case '/':
+// 			nLastKeyCode = keyCode; // Save the last key code
+// 			SetStatusText(wxString::Format(" %c ", keyCode), 1); // Show status 
+// 			return true; // Handled
+// 		default:
+// 		  break;
+// 	}
+// 	nLastKeyCode = -1; 
+// 	return false;
+// };
+
 // 使用 wxEVT_KEY_DOWN 來處理所有需要在預設行為之前的鍵盤事件
 void MyFrame::OnKeyDown(wxKeyEvent &event)
 {
@@ -1971,7 +1962,7 @@ void MyFrame::VimCompiler(const std::string& cmdStr, StVimCmd& cmd)
 
     // 4. Parse Action
     char actionChar = cmdStr[index];
-    bool actionParsed = true;
+    actionParsed = true;
 
     switch (actionChar) {
         case 'd': cmd.action = evcDelete; break;
@@ -2105,7 +2096,10 @@ wxString MyFrame::GetTextForMotion(StVimCmd& cmd, long& startPos, long& endPos) 
     switch(cmd.object) {
         case evoLine:
             {
-                long currentLineNum = input->GetCurLineNumber();
+                long currentLineNum;
+								long tX,tY ;
+								input->PositionToXY(input->GetInsertionPoint(), &tX, &tY); 
+								currentLineNum = tY; // Get current line number
                 long lastLineNum = currentLineNum + cmd.count -1;
                 if (lastLineNum >= input->GetNumberOfLines()) lastLineNum = input->GetNumberOfLines() -1;
                 

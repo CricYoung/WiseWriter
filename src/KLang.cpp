@@ -1,6 +1,6 @@
 
 #include "KLang.hpp"
-#include "KGlobal.h"
+#include "KGlobal.hpp"
 #include <wx/stdpaths.h> // For wxStandardPaths
 #include <wx/config.h>
 

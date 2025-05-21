@@ -18,8 +18,8 @@
 // (This modification to MyFrame.h is outside current step but important for real testability)
 #define private public
 #define protected public
-#include "WiseWriter.h"
-#include "KWxApp.h" // Required for wxAppConsole
+#include "WiseWriter.hpp"
+#include "KWxApp.hpp" // Required for wxAppConsole
 #undef private
 #undef protected
 
@@ -216,7 +216,7 @@ void TestVimCompiler() {
     TEST_ASSERT_EQUAL(evoCharacter, cmd.object, "3l object");
     TEST_ASSERT_EQUAL(1, cmd.param, "3l param (direction)");
 
-
+ 
     // Case 21: "2h" (move 2 chars left)
     cmdStr = "2h";
     frame.VimCompiler(cmdStr, cmd);
@@ -373,7 +373,8 @@ void TestVimExeCmd() {
 }
 
 
-int main(int argc, char **argv) {
+// int main(int argc, char **argv) {
+int VimTestsMain(int argc, char **argv) {
     // For tests involving wxWidgets classes like wxString or wxTextCtrl,
     // a wxAppConsole instance is often needed to initialize the library.
     // wxApp::SetInstance( new wxAppConsole ); // This is one way
@@ -404,10 +405,10 @@ int main(int argc, char **argv) {
     std::cerr << "Failed: " << tests_failed << std::endl;
     std::cerr << "--------------------" << std::endl;
 
-    if (wxTheApp) { // wxTheApp is a global pointer to the wxApp instance
-        wxTheApp->OnExit(); // Clean up wxWidgets
-        wxEntryCleanup();
-    }
+    // if (wxTheApp) { // wxTheApp is a global pointer to the wxApp instance
+        // wxTheApp->OnExit(); // Clean up wxWidgets
+        // wxEntryCleanup();
+    // }
     
     return (tests_failed == 0) ? 0 : 1;
 }

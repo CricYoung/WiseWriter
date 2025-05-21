@@ -4,7 +4,7 @@
 #include <wx/config.h> // For wxConfig
 #include <map> // For std::map
 
-#include "KGlobal.h"
+#include "KGlobal.hpp"
 
 void GetDefIniFileName(wxString& tIniFileName,const wxString& tRefPath)
 {

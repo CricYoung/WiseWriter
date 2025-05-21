@@ -2,7 +2,7 @@
 #pragma once
 #include <wx/stc/stc.h>
 #include "Dlgs.h"
-#include "KGlobal.h"
+#include "KGlobal.hpp"
 #include <wx/choice.h>
 #include <wx/config.h>
 

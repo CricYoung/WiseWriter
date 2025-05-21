@@ -2,8 +2,8 @@
 #include <wx/colordlg.h> // For wxColourDialog
 #include <wx/fontdlg.h> // For wxFontDialog
 #include <wx/variant.h>
-#include "DlgSettings.h"
-#include "KHotKey.h"
+#include "DlgSettings.hpp"
+#include "KHotKey.hpp"
 #include "KLang.hpp"
 
 // --- listHotKeys Fields ---

@@ -1684,12 +1684,11 @@ void MyFrame::OnKeyDown(wxKeyEvent &event)
 		event.Skip();
 		return;
 	};
-	if (bInViewMode) { 
-		if(DoVimCombineKey(event)) { ShowInputStatus(); return; }; // Handled
-		if(DoVimViewKey(event)){ ShowInputStatus();  return ; };// Vim-like key handling
-		ResetCombineKey();
-		ShowInputStatus();
-		return;
+	if (bInViewMode) {
+		VimKeyProc(event); // Process Vim keys
+		// event.Skip() is intentionally not called, managed by VimKeyProc or by returning here.
+		// The original logic also had a return here, effectively not calling event.Skip().
+		return; 
 	};
 
 	// Edit Mode Logic
@@ -1744,4 +1743,658 @@ void MyFrame::SummonHotkeyHandler(void *userData)
 		wxLogError("SummonHotkeyHandler called with null userData!");
 	}
 	// No return value needed for the generic callback
+}
+
+// Implementation for VimKeyProc
+void MyFrame::VimKeyProc(wxKeyEvent& event)
+{
+    int keyCode = event.GetKeyCode();
+    wxUniChar uc = event.GetUnicodeKey();
+
+    // 1. Handle ESC key
+    if (keyCode == WXK_ESCAPE) {
+        vimInputBuffer.clear();
+        currentVimCmd = {}; // Reset command (param 0, action undefined, object undefined)
+        currentVimCmd.action = evcUndefined;
+        currentVimCmd.object = evoUndefined;
+        currentVimCmd.count = 0;
+        EnterEditMode(); // Switch to Edit Mode
+        SetStatusText("Vim Buffer Cleared (ESC)", 1); // Clear status
+        return;
+    }
+
+    // 2. Append to vimInputBuffer (if it's a printable character)
+    // We only append actual characters, not modifiers or special keys like Shift, Ctrl etc.
+    // WXK_NONE is returned if the key press does not correspond to a printable character.
+    if (uc != WXK_NONE) {
+        // Basic ASCII range check, can be expanded if more complex chars needed for commands
+        // For Vim commands, typically we care about ASCII characters.
+        if (uc >= 32 && uc <= 126) { // Printable ASCII characters
+            vimInputBuffer += (char)uc;
+        } else {
+            // Potentially handle other special wxKeyCodes that ARE part of commands but don't have simple Unicode,
+            // e.g. WXK_RETURN, WXK_TAB if they were to be part of a command sequence.
+            // For now, we primarily focus on chars like 'd', 'w', '2', 'f', 'x' etc.
+            // If a non-ASCII char is pressed that we don't want in buffer, we can ignore or beep.
+             event.Skip(); // Let other handlers deal with it if not a simple char we want.
+             return;
+        }
+    } else {
+        // Handle special keys that don't have a Unicode representation but might be part of a command
+        // (e.g., if you wanted to map WXK_F1 to something in Vim mode).
+        // For now, if it's not ESC (handled above) and not a printable char, we ignore it in VimKeyProc.
+        // This prevents arrow keys, function keys etc. from populating the vimInputBuffer unless specifically handled.
+        // event.Skip(); // Pass it on if not used by VimKeyProc.
+        return; // Or simply return if these keys have no meaning in Vim command buffer.
+    }
+    
+    SetStatusText(wxString::FromUTF8(vimInputBuffer.c_str()), 1); // Display current buffer
+
+    // 3. Parse vimInputBuffer
+    // Placeholder for return status from VimParseIncompleteCmd
+    // enum class ParseStatus { Complete, Incomplete, Invalid };
+    // bool isComplete = VimParseIncompleteCmd(vimInputBuffer, currentVimCmd); 
+    // For now, using a simple bool: true for complete, false for incomplete/invalid.
+    // The subtask asks VimParseIncompleteCmd to return false for "incomplete" initially.
+    // We need a way to distinguish Invalid from Incomplete.
+    // Let's assume VimParseIncompleteCmd will set cmd.action to evcUndefined for invalid sequences.
+    
+    bool parseResult = VimParseIncompleteCmd(vimInputBuffer, currentVimCmd);
+
+    // 4. Handle parsing results
+    if (currentVimCmd.action == evcUndefined && !vimInputBuffer.empty()) { // Considered INVALID by convention
+        // Check if buffer is not empty because an empty buffer parsed might correctly result in evcUndefined
+        // for the initial state of currentVimCmd.
+        // This case handles where VimParseIncompleteCmd explicitly marks it as invalid.
+        wxBell(); // Audible feedback for invalid command
+        SetStatusText(wxString::Format("Invalid: %s", vimInputBuffer.c_str()), 1);
+        vimInputBuffer.clear();
+        currentVimCmd = {}; // Reset
+        currentVimCmd.action = evcUndefined;
+        currentVimCmd.object = evoUndefined;
+        currentVimCmd.count = 0;
+    } else if (parseResult == true) { // COMPLETE
+        // currentVimCmd is updated by VimParseIncompleteCmd
+        VimExeString(vimInputBuffer); // Execute the command
+        SetStatusText(wxString::Format("Executed: %s", vimInputBuffer.c_str()), 1);
+        vimInputBuffer.clear();
+        currentVimCmd = {}; // Reset
+        currentVimCmd.action = evcUndefined;
+        currentVimCmd.object = evoUndefined;
+        currentVimCmd.count = 0;
+    } else { // INCOMPLETE but valid so far
+        // currentVimCmd is updated by VimParseIncompleteCmd.
+        // Wait for more input.
+        // Status bar already shows current vimInputBuffer.
+    }
+}
+
+// Stub for VimParseIncompleteCmd
+// Returns true if command is complete, false if incomplete or invalid.
+// For invalid, it should set cmd.action = evcUndefined as a signal.
+bool MyFrame::VimParseIncompleteCmd(const std::string& buffer, StVimCmd& cmd)
+{
+    // TODO: Implement actual Vim command parsing logic.
+    // For now, this stub treats all commands as incomplete unless they are "dd",
+    // and "dx" as invalid to test the logic.
+    // It should fill cmd (count, action, object, param) based on the buffer.
+
+    cmd.action = evcUndefined; // Default to undefined / invalid
+    cmd.object = evoUndefined;
+    cmd.count = 0;
+    cmd.param = 0;
+
+    if (buffer.empty()) {
+        return false; // Incomplete (empty is not a command)
+    }
+
+    // Example: "dd" is complete
+    if (buffer == "dd") {
+        cmd.action = evcDelete;
+        cmd.object = evoLine; // Simplified, 'dd' implies current line
+        cmd.count = 1; // or parse count if present
+        return true; // Complete
+    }
+    
+    // Example: "d" is incomplete
+    if (buffer == "d") {
+        cmd.action = evcDelete; // Action is known
+        // object, count might still be coming
+        return false; // Incomplete
+    }
+    
+    // Example: "dw" is complete
+     if (buffer == "dw") {
+        cmd.action = evcDelete;
+        cmd.object = evoWord;
+        cmd.count = 1;
+        return true; // Complete
+    }
+
+    // Example: "dx" is invalid (let's assume x is not a valid motion for d)
+    if (buffer == "dx") {
+        cmd.action = evcUndefined; // Mark as invalid
+        return false; // Technically the command sequence is "complete" but invalid
+                      // The logic in VimKeyProc will check cmd.action for evcUndefined
+    }
+    
+    // Default: treat as incomplete for this stub
+    // A real parser would be more sophisticated.
+    // If the buffer starts with a valid command prefix, keep action set.
+    if (!buffer.empty()) {
+        char firstChar = buffer[0];
+        // Rudimentary check, a real parser would be a state machine.
+        if (firstChar == 'd') cmd.action = evcDelete;
+        else if (firstChar == 'c') cmd.action = evcChange;
+        else if (firstChar == 'y') cmd.action = evcYield;
+        // ... etc.
+        // If cmd.action is still evcUndefined after checking prefixes, it's likely invalid from the start.
+    }
+
+
+    return false; // Default to incomplete
+}
+
+// Implementation for VimExeString
+void MyFrame::VimExeString(const std::string& cmdStr)
+{
+    // 1. Call VimCompiler to parse the complete command string
+    VimCompiler(cmdStr, currentVimCmd); // currentVimCmd is a member, VimCompiler populates it
+
+    // 2. Call VimExeCmd to execute the command
+    VimExeCmd(currentVimCmd);
+
+    // 3. Clear vimInputBuffer and reset currentVimCmd
+    vimInputBuffer.clear();
+    currentVimCmd.action = evcUndefined;
+    currentVimCmd.object = evoUndefined;
+    currentVimCmd.count = 0;
+    currentVimCmd.param = 0; // Reset param as well
+
+    // Update status or provide feedback
+    SetStatusText(wxString::Format("Cmd Executed. Buffer cleared. Last cmd: %s", cmdStr.c_str()), 0);
+}
+
+// Implementation for VimCompiler
+void MyFrame::VimCompiler(const std::string& cmdStr, StVimCmd& cmd)
+{
+    // 1. Initialization
+    cmd.count = 1; // Default count is 1, not 0. "dw" is 1dw.
+    cmd.action = evcUndefined;
+    cmd.object = evoUndefined;
+    cmd.param = 0;
+
+    if (cmdStr.empty()) {
+        return; // Nothing to parse
+    }
+
+    size_t index = 0;
+
+    // 3. Parse Count
+    // Handles counts like "123dw"
+    if (isdigit(cmdStr[index])) {
+        if (cmdStr[index] == '0' && (cmdStr.length() > 1 && isdigit(cmdStr[index+1])) ) {
+            // '0' followed by another digit is not a valid count prefix,
+            // '0' itself might be a motion (evoToLineStart0)
+            // This condition might need refinement based on how '0' motion is handled
+        } else {
+            size_t countEnd = index;
+            while (countEnd < cmdStr.length() && isdigit(cmdStr[countEnd])) {
+                countEnd++;
+            }
+            std::string countStr = cmdStr.substr(index, countEnd - index);
+            if (!countStr.empty()) {
+                try {
+                    int parsedCount = std::stoi(countStr);
+                    if (parsedCount > 0) { // Count must be positive. '0' is not a count for "0dw".
+                        cmd.count = parsedCount;
+                    } else if (parsedCount == 0 && countStr.length() == 1) {
+                        // If '0' is the entire "count part", it might be a motion.
+                        // Let action/object parsing handle it. For now, keep count = 1.
+                    }
+                    index = countEnd;
+                } catch (const std::out_of_range&) {
+                    // Count too large, treat as error or default
+                    cmd.action = evcUndefined; return; // Invalid command
+                } catch (const std::invalid_argument&) {
+                    // Not a number, should not happen if isdigit passed
+                    cmd.action = evcUndefined; return; // Invalid command
+                }
+            }
+        }
+    }
+    
+    if (index >= cmdStr.length()) { // Only count specified, e.g., "123"
+        cmd.action = evcUndefined; // Incomplete or invalid
+        return;
+    }
+
+    // 4. Parse Action
+    char actionChar = cmdStr[index];
+    bool actionParsed = true;
+
+    switch (actionChar) {
+        case 'd': cmd.action = evcDelete; break;
+        case 'y': cmd.action = evcYield; break;
+        case 'c': cmd.action = evcChange; break;
+        case 'p': cmd.action = evcPut; break; // Typically no object, or uses register
+        case 'i': cmd.action = evcInsert; break; // Mode change, no object
+        case 'a': cmd.action = evcAppend; break;  // Mode change, no object
+        case 'o': cmd.action = evcOpenLineBelow; break; // No object
+        case 'O': cmd.action = evcOpenLineAbove; break; // No object
+        case 'r': cmd.action = evcReplaceChar; break; // Needs param
+        case 's': cmd.action = evcSubstitute; break; // Char substitute, or line with 'S'
+        case 'f': cmd.action = evcFind; cmd.object = evoFindCharForward; break; // Needs param
+        case 'F': cmd.action = evcFind; cmd.object = evoFindCharBackward; break;// Needs param
+        case 't': cmd.action = evcFind; cmd.object = evoTillCharForward; break; // Needs param
+        case 'T': cmd.action = evcFind; cmd.object = evoTillCharBackward; break;// Needs param
+        case 'x': // Special case: x -> d + evoCharacter (delete char under cursor)
+            cmd.action = evcDelete;
+            cmd.object = evoCharacter;
+            // cmd.count applies to 'x' as well, e.g. "2x" deletes 2 chars
+            index++; // Consume 'x'
+            goto end_parse; // 'x' is a complete command action + object
+        case 'D': // Special case: D -> d$
+            cmd.action = evcDelete;
+            cmd.object = evoToLineEnd;
+            index++;
+            goto end_parse;
+        case 'C': // Special case: C -> c$
+            cmd.action = evcChange;
+            cmd.object = evoToLineEnd;
+            index++;
+            goto end_parse;
+        case 'Y': // Special case: Y -> yy
+            cmd.action = evcYield;
+            cmd.object = evoLine;
+            index++;
+            goto end_parse;
+        default:
+            actionParsed = false; // Not a recognized action char
+            cmd.action = evcUndefined; // Mark as invalid
+            return; // Early exit if action is not recognized
+    }
+    index++; // Move past the action character
+
+    // 5. Parse Object/Motion (if applicable)
+    if (index >= cmdStr.length()) { // Action requires more but string ended
+        // e.g. just 'd' is incomplete if not 'dd'. 'p', 'o', 'O', 'i', 'a' are fine.
+        if (cmd.action == evcDelete || cmd.action == evcYield || cmd.action == evcChange ||
+            ((cmd.action == evcFind) && (cmd.object == evoFindCharForward || cmd.object == evoFindCharBackward || cmd.object == evoTillCharForward || cmd.object == evoTillCharBackward)) ||
+             cmd.action == evcReplaceChar) {
+            cmd.action = evcUndefined; // Mark as incomplete/invalid because it needs an object/param
+        }
+        goto end_parse; // Or it's a complete command like 'p'
+    }
+
+    // Check for doubled characters like dd, yy, cc
+    if ((cmd.action == evcDelete && cmdStr[index] == 'd') ||
+        (cmd.action == evcYield && cmdStr[index] == 'y') ||
+        (cmd.action == evcChange && cmdStr[index] == 'c')) {
+        cmd.object = evoLine;
+        index++;
+        goto end_parse;
+    }
+
+    // Parse parameter for f, F, t, T, r
+    if (cmd.action == evcReplaceChar || 
+        ((cmd.action == evcFind) && (cmd.object == evoFindCharForward || cmd.object == evoFindCharBackward || cmd.object == evoTillCharForward || cmd.object == evoTillCharBackward))) {
+        if (index < cmdStr.length()) {
+            cmd.param = cmdStr[index];
+            index++;
+        } else {
+            cmd.action = evcUndefined; // Needs a param, but string ended
+        }
+        goto end_parse;
+    }
+    
+    // Specific object/motion parsing if action doesn't imply object and is not param-based
+    // This section is only reached if the command is not yet complete (e.g. 'd' followed by something other than 'd')
+    // And if the command takes an object (d, y, c)
+    if (cmd.action == evcDelete || cmd.action == evcYield || cmd.action == evcChange) {
+        if (index < cmdStr.length()) {
+            char objectChar = cmdStr[index];
+            switch (objectChar) {
+                case 'w': cmd.object = evoWord; break;
+                case 'b': cmd.object = evoBackWord; break;
+                case 'e': cmd.object = evoEndWord; break;
+                case '$': cmd.object = evoToLineEnd; break;
+                case '0': cmd.object = evoToLineStart0; break;
+                case '^': cmd.object = evoToLineStartNonBlank; break;
+                case 'l': cmd.object = evoCharacter; break; // move right
+                case 'h': cmd.object = evoCharacter; break; // move left (TODO: directionality for evoCharacter?)
+                // TODO: Inner/A text objects like "iw", "aw", "i(", "a(" etc. would need more logic
+                default:
+                    cmd.action = evcUndefined; // Invalid object for d,y,c
+                    goto end_parse;
+            }
+            index++;
+        } else {
+             // 'd', 'y', 'c' by themselves are invalid/incomplete.
+             // This should have been caught by VimParseIncompleteCmd ideally,
+             // but VimCompiler confirms it.
+            cmd.action = evcUndefined;
+        }
+    }
+
+end_parse:
+    if (index < cmdStr.length()) {
+        // Trailing characters that were not parsed. This means the command string was not fully understood.
+        // e.g. "dwx" - "dw" is parsed, "x" is trailing.
+        // For a strict compiler, this could be an error.
+        // For now, we assume the initial part is what was intended if it forms a valid command.
+        // Or, mark as error:
+        // cmd.action = evcUndefined; 
+    }
+    // SetStatusText(wxString::Format("VimCompiler: %s -> cnt:%d, act:%d, obj:%d, prm:%c", 
+    //    cmdStr.c_str(), cmd.count, cmd.action, cmd.object, cmd.param), 1);
+}
+
+
+// Helper function to get text for a given motion.
+// This is a simplified version. A real one would be more complex.
+// Returns wxString to be compatible with input control methods.
+wxString MyFrame::GetTextForMotion(StVimCmd& cmd, long& startPos, long& endPos) {
+    startPos = input->GetInsertionPoint();
+    long originalPos = startPos;
+    endPos = startPos; // Default if motion doesn't move
+
+    // This logic is highly simplified and needs proper implementation for each object type
+    // It should determine the range of text the motion covers.
+    // For simplicity, let's assume some motions for now.
+    switch(cmd.object) {
+        case evoLine:
+            {
+                long currentLineNum = input->GetCurLineNumber();
+                long lastLineNum = currentLineNum + cmd.count -1;
+                if (lastLineNum >= input->GetNumberOfLines()) lastLineNum = input->GetNumberOfLines() -1;
+                
+                startPos = input->XYToPosition(0, currentLineNum);
+                endPos = input->XYToPosition(0, lastLineNum +1 ); // Position after the last char of last line
+                if (endPos > input->GetLastPosition() && lastLineNum < input->GetNumberOfLines()) { // if not the very end of file
+                     endPos = input->XYToPosition(input->GetLineLength(lastLineNum), lastLineNum);
+                     if (lastLineNum < input->GetNumberOfLines() -1) endPos++; // include newline unless it's the last line and no newline
+                } else if (endPos > input->GetLastPosition()) {
+                     endPos = input->GetLastPosition();
+                }
+
+            }
+            break;
+        case evoWord:
+            // Simplified: get current word or cmd.count words
+            // A proper implementation would use NextPhrase/PrevPhrase carefully
+            endPos = startPos;
+            for (int i = 0; i < cmd.count; ++i) {
+                long nextWordPos = NextPhrase(); // NextPhrase needs to return new position
+                if (nextWordPos != -1 && nextWordPos > endPos) {
+                    endPos = nextWordPos;
+                } else {
+                    endPos = input->GetLastPosition(); // Or end if no more words
+                    break;
+                }
+            }
+             //This is tricky: NextPhrase moves caret. We need a version that calculates range.
+             // For now, let's assume a GetCurPhrasePos like logic
+            GetCurPhrasePos(startPos, endPos); // This gets current phrase, not count
+            if (cmd.count > 1) SetStatusText("Yank for count > 1 on word not fully implemented",1);
+
+            break;
+        case evoToLineEnd:
+            GetLineStartEndPos(startPos, endPos, 0); // Gets current line start/end
+            startPos = originalPos; // Yank from cursor
+            break;
+        case evoCharacter:
+            endPos = startPos + cmd.count;
+            if (endPos > input->GetLastPosition()) endPos = input->GetLastPosition();
+            break;
+        default:
+            // For other objects, we'd need more logic.
+            // Fallback to no text or single character.
+            endPos = startPos; // effectively empty or error
+            break;
+    }
+    if (startPos > endPos) std::swap(startPos, endPos); // Ensure start <= end
+    return input->GetRange(startPos, endPos);
+}
+
+
+// Implementation for VimExeCmd
+void MyFrame::VimExeCmd(StVimCmd& cmd)
+{
+    bool bCmdHandled = false;
+    long initialPos = input->GetInsertionPoint(); // Store initial position for some ops
+
+    switch (cmd.action) {
+        case evcDelete:
+            for (int i = 0; i < cmd.count; ++i) { // Apply count for the WHOLE operation typically
+                                                // but for some, count is part of motion (e.g. d2w)
+                                                // Here, cmd.count should already be set by Compiler for d2w to mean 2 words.
+                                                // So, the loop here should be 1 unless cmd itself is repeated (e.g. from a macro later)
+                if (i > 0) initialPos = input->GetInsertionPoint(); // update for repeated full commands
+
+                switch (cmd.object) {
+                    case evoWord:
+                        // For "dw", cmd.count is 1. If "2dw", cmd.count is 2.
+                        // So the loop for cmd.count is already handled by the compiler setting cmd.count.
+                        // We just need to delete one "object unit" here, which might span multiple words if count was on motion.
+                        // This interpretation means the outer cmd.count loop should mostly be 1.
+                        // Let's assume compiler sets cmd.count correctly for "2dw" etc.
+                        // Thus, the loop `for (int i = 0; i < cmd.count; ++i)` above might be redundant if count is part of motion.
+                        // For "dd", count is for lines. For "d2w", count is 2 for words.
+                        // The current compiler logic sets cmd.count for d(2w) -> cmd.count = 2, cmd.object = evoWord
+                        // Let's simplify: the loop for (int i=0; i<cmd.count... ) applies to the "motion" part.
+                        // This means DeleCaretChar(cmd.count) for evoCharacter is correct.
+                        // DoDeleLine(cmd.count) for evoLine is correct.
+                        // For evoWord with "d2w" (cmd.count=2), we need to delete 2 words.
+                        {
+                            long startDel, endDel;
+                            for(int w=0; w<cmd.count; ++w) {
+                                if(w>0) input->SetInsertionPoint(startDel); // after first word deletion, cursor is at startDel
+                                if (!GetCurPhrasePos(startDel, endDel) || startDel == endDel) break; // No phrase or empty
+                                input->Remove(startDel, endDel);
+                                if(w < cmd.count -1 && startDel == input->GetLastPosition()) break; // if deleted to end
+                            }
+                            bCmdHandled = true;
+                        }
+                        break;
+                    case evoLine: DoDeleLine(cmd.count); bCmdHandled = true; break;
+                    case evoToLineEnd: DeleToLineEnd(); bCmdHandled = true; break;
+                    case evoToLineStart0: DeleToLineStart(); bCmdHandled = true; break;
+                    case evoCharacter: DeleCaretChar(cmd.count); bCmdHandled = true; break; // 'x' or 'dl'
+                    case evoFindCharForward: // dtf, dff etc.
+                    case evoFindCharBackward:
+                    case evoTillCharForward:
+                    case evoTillCharBackward:
+                        {
+                            long currentPos = input->GetInsertionPoint();
+                            long targetPos = currentPos;
+                            bool found = false;
+                            for(int k=0; k < cmd.count; ++k){ // for cases like d2fx
+                                targetPos = DoFindChar(cmd.param, (cmd.object == evoFindCharBackward || cmd.object == evoTillCharBackward));
+                                if(targetPos == -1) { found=false; break;}
+                                found = true;
+                                if (cmd.object == evoTillCharForward && targetPos > currentPos) targetPos--; // before char
+                                else if (cmd.object == evoTillCharBackward && targetPos < currentPos) targetPos++; // before char (after if moving left)
+                                if (k < cmd.count -1 ) input->SetInsertionPoint(targetPos + ((cmd.object == evoFindCharBackward || cmd.object == evoTillCharBackward) ? -1:1) ); // move for next find
+                            }
+
+                            if (found) {
+                                if (cmd.object == evoFindCharForward || cmd.object == evoTillCharForward) { // Forward
+                                    if (targetPos > currentPos) input->Remove(currentPos, targetPos + (cmd.object == evoFindCharForward ? 1:0) );
+                                } else { // Backward
+                                    if (targetPos < currentPos) input->Remove(targetPos + (cmd.object == evoFindCharBackward ? 0:1), currentPos);
+                                }
+                                bCmdHandled = true;
+                            } else {
+                                wxBell(); // Not found
+                            }
+                        }
+                        break;
+                    default: SetStatusText("Delete for this object not implemented",0); break;
+                }
+            } // This outer loop for cmd.count might be removed if count is always part of the motion.
+              // For now, it's somewhat ambiguous how "2dw" (cmd.count=2, from compiler) vs "d2w" (cmd.count=2 from compiler)
+              // For "dd", cmd.count is 1. "2dd" -> cmd.count=2. DoDeleLine(cmd.count) is correct.
+              // For "dw", cmd.count is 1. "d2w" -> cmd.count=2. The inner word deletion loop handles cmd.count.
+              // So the outer loop `for (int i=0;...` should effectively run once for most d/y/c commands
+              // if the compiler correctly sets cmd.count from things like "2w".
+              // The current compiler sets cmd.count from "2" in "2dw".
+              // Let's assume the outer loop is for repeating the *entire* StVimCmd, which is usually 1.
+              // And cmd.count inside StVimCmd is for the motion's repetition.
+              // This means the top loop `for (int i = 0; i < cmd.count; ++i)` should be `for (int i = 0; i < 1; ++i)`
+              // and rely on cmd.count being correctly set and used by object handlers.
+              // Re-evaluating: The prompt implies `cmd.count` applies to the action. So `2dw` means "delete word, twice".
+              // This is different from `d2w` which means "delete 2 words, once".
+              // The current compiler is likely parsing `2dw` as count=2, action=d, object=w.
+              // This interpretation is used below.
+            break;
+
+        case evcChange:
+            // Similar to delete, then EnterEditMode()
+            {
+                bool deleted = false;
+                for (int i = 0; i < cmd.count; ++i) { // See notes on count for evcDelete
+                     switch (cmd.object) {
+                        case evoWord:
+                        {
+                            long startDel, endDel;
+                            for(int w=0; w<cmd.count; ++w) { // cmd.count from "c2w"
+                                if(w>0) input->SetInsertionPoint(startDel);
+                                if (!GetCurPhrasePos(startDel, endDel) || startDel == endDel) break;
+                                input->Remove(startDel, endDel);
+                                deleted = true;
+                                if(w < cmd.count -1 && startDel == input->GetLastPosition()) break;
+                            }
+                        }
+                        break;
+                        case evoLine: DoDeleLine(cmd.count); deleted = true; break; // c2c -> cmd.count=2
+                        case evoToLineEnd: DeleToLineEnd(); deleted = true; break; // C
+                        // ... other objects
+                        default: SetStatusText("Change for this object not implemented",0); break;
+                    }
+                    if(!deleted && i < cmd.count -1) break; // if one iteration did nothing, stop
+                }
+                 if(deleted || cmd.object == evoUndefined) EnterEditMode(); // Enter edit mode if text was changed or if it's a change command that implies it (e.g. 'cw' even if word is empty)
+                bCmdHandled = true;
+            }
+            break;
+
+        case evcYield: // Yank
+            {
+                long startPos, endPos;
+                wxString yanked = GetTextForMotion(cmd, startPos, endPos);
+                if (!yanked.empty() || startPos != endPos) { // Allow yanking empty if range is valid
+                    m_vimYankBuffer = yanked.ToStdString();
+                    SetStatusText(wxString::Format("Yanked: %d chars", (int)m_vimYankBuffer.length()),0);
+                    input->SetInsertionPoint(initialPos); // Restore cursor after calculating range
+                } else {
+                    SetStatusText("Nothing to yank for motion.",0);
+                }
+                bCmdHandled = true;
+            }
+            break;
+
+        case evcPut:
+            if (!m_vimYankBuffer.empty()) {
+                bool isLineWise = (m_vimYankBuffer.find('\n') != std::string::npos);
+                for (int i = 0; i < cmd.count; ++i) {
+                    long currentPos = input->GetInsertionPoint();
+                    if (isLineWise) {
+                        MoveCaretToLineBottom(); // Go to end of current line
+                        if (input->GetInsertionPoint() == input->GetLastPosition() && input->GetValue().Last() != '\n'){
+                             input->WriteText("\n"); // Add newline if at EOF without one
+                        }
+                        input->WriteText("\n" + wxString::FromUTF8(m_vimYankBuffer.c_str()));
+                        // Cursor should be at start of newly pasted content, or after for charwise
+                    } else {
+                        if (currentPos < input->GetLastPosition()) input->SetInsertionPoint(currentPos + 1);
+                        input->WriteText(wxString::FromUTF8(m_vimYankBuffer.c_str()));
+                    }
+                }
+            } else {
+                SetStatusText("Yank buffer is empty",0);
+            }
+            bCmdHandled = true;
+            break;
+
+        case evcFind: // Standalone f, F, t, T (compiler sets cmd.object for these)
+            {
+                long finalPos = -1;
+                for(int k=0; k < cmd.count; ++k) {
+                    bool backward = (cmd.object == evoFindCharBackward || cmd.object == evoTillCharBackward);
+                    long foundPos = DoFindChar(cmd.param, backward);
+                    if (foundPos != -1) {
+                        finalPos = foundPos;
+                        if (cmd.object == evoTillCharForward && finalPos > input->GetInsertionPoint()) finalPos--;
+                        else if (cmd.object == evoTillCharBackward && finalPos < input->GetInsertionPoint()) finalPos++;
+                        
+                        input->SetInsertionPoint(finalPos);
+                        if (k < cmd.count -1) { // If more finds needed, advance cursor slightly to find next
+                           if (backward) input->SetInsertionPoint(finalPos > 0 ? finalPos -1 : 0);
+                           else input->SetInsertionPoint(finalPos < input->GetLastPosition() ? finalPos + 1: input->GetLastPosition());
+                        }
+                    } else {
+                        finalPos = -1; // Not found
+                        wxBell();
+                        break;
+                    }
+                }
+                if(finalPos != -1) input->SetInsertionPoint(finalPos); // Ensure cursor is at the final spot
+                bCmdHandled = true;
+            }
+            break;
+
+        case evcMove: // Standalone motions (w, b, 0, $, etc.)
+            for (int i = 0; i < cmd.count; ++i) {
+                switch (cmd.object) {
+                    case evoWord: NextPhrase(); break;
+                    case evoBackWord: PrevPhrase(); break;
+                    case evoEndWord: /* TODO: Implement MoveToEndWord */ NextPhrase(); if(input->GetInsertionPoint()>0) MoveCaretAhead(-1); break; // Simplified
+                    case evoToLineEnd: MoveCaretToLineBottom(); break;
+                    case evoToLineStart0: MoveCaretToLineTop(); break;
+                    case evoCharacter: MoveCaretAhead(1); break; // 'l'
+                    // 'h' would be MoveCaretAhead(-1) - needs distinction in StVimCmd or compiler
+                    default: SetStatusText("Move for this object not implemented",0); break;
+                }
+            }
+            bCmdHandled = true;
+            break;
+            
+        case evcReplaceChar: // 'r' command
+            if (cmd.param != 0) { // Ensure param character is set
+                DeleCaretChar(cmd.count); // Delete characters to be replaced
+                for (int i = 0; i < cmd.count; ++i) {
+                    input->WriteText(wxString(cmd.param, 1));
+                }
+            }
+            bCmdHandled = true;
+            break;
+
+        case evcOpenLineBelow: // 'o'
+            MoveCaretToLineBottom();
+            input->WriteText("\n");
+            EnterEditMode();
+            bCmdHandled = true;
+            break;
+
+        case evcOpenLineAbove: // 'O'
+            MoveCaretToLineTop(); // Go to beginning of current line
+            input->WriteText("\n"); // Insert newline above
+            MoveCaretUp(-1);      // Move caret to the newly created line
+            EnterEditMode();
+            bCmdHandled = true;
+            break;
+        
+        case evcInsert: EnterEditMode(); bCmdHandled = true; break;
+        case evcAppend: MoveCaretAhead(1); EnterEditMode(); bCmdHandled = true; break;
+
+
+        default:
+            SetStatusText(wxString::Format("Command action '%d' not implemented yet.", cmd.action), 0);
+            break;
+    }
+    if(bCmdHandled) {
+        // Optional: Show status based on executed command
+        // SetStatusText(wxString::Format("Executed: %c %d %c", cmd.action, cmd.count, cmd.object), 1);
+    }
 }

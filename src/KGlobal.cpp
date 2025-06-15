@@ -77,3 +77,28 @@ void RestartApp(const char* tCmdLine)
 
     wxTheApp->ExitMainLoop();
 }
+
+int GetTopNumber(char* tStr, int tLen,int& tNumLn) {
+    // 計算字串開頭中的數字
+    // 例如 "123abc" -> 123
+    tNumLn=0;
+    for(; tNumLn<tLen; tNumLn++) {
+        if(tStr[tNumLn] < '0' || tStr[tNumLn] > '9') break;
+    }
+    // 轉換成整數
+    if(tNumLn == 0) return 0; // 沒有數字
+    if(tNumLn > tLen){
+      char* tNum = new char[tNumLn+1];
+      memcpy(tNum, tStr, tNumLn);
+      tNum[tNumLn] = 0;
+      int tNumInt = atoi(tNum);
+      delete[] tNum;
+      tNumLn=tLen;
+      return tNumInt;
+    }
+    char tBackup = tStr[tNumLn];
+    tStr[tNumLn] = 0;
+    int tNum = atoi(tStr);
+    tStr[tNumLn] = tBackup;
+    return tNum;
+}

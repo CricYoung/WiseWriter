@@ -31,3 +31,5 @@ bool IsInDarkMode(wxWindow* tWin); // check if window is in dark mode
 
 void InitListColumns(wxDataViewListCtrl* tlist,const StField* tDefFields, size_t tFieldCount); 
 void SetListHotkeySetsRows(wxDataViewListCtrl* tList, const StHotkeySet* tHotkeySets, size_t tRowCount); 
+
+int GetTopNumber(char* tStr, int tLen,int& tNumLn); 
